@@ -39,7 +39,7 @@ export default function Login() {
     <div 
       className="flex min-h-screen items-center justify-center px-4 relative"
       style={{
-        backgroundImage: `url('/src/assets/hero-mosque.jpg')`,
+        backgroundImage: `url('/hero-mosque.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
