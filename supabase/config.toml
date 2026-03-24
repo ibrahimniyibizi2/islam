@@ -1,0 +1,16 @@
+project_id = "olpvftgnmycofavltxoa"
+
+[functions.send-status-sms]
+verify_jwt = false
+
+[functions.send-status-email]
+verify_jwt = false
+
+[functions.send-nikah-sms]
+verify_jwt = false
+
+[functions.send-nikah-email]
+verify_jwt = false
+
+[functions.admin-user-control]
+verify_jwt = true
