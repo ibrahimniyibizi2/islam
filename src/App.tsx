@@ -24,6 +24,7 @@ import VerifyCertificate from "./pages/VerifyCertificate";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
 import Unauthorized from "./pages/Unauthorized";
 import DashboardRedirect from "./pages/DashboardRedirect";
 
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/verify-certificate/:certificate_number?" element={<VerifyCertificate />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/dashboard" element={<DashboardRedirect />} />
 

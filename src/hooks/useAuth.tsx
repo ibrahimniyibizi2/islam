@@ -12,6 +12,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
   getDashboardPath: () => string;
 }
 
@@ -89,12 +90,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(null);
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { error: error as Error | null };
+  };
+
   const getDashboardPath = () => {
     return ROLE_DASHBOARD_PATHS[role ?? 'public_user'];
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, role, loading, signIn, signUp, signOut, getDashboardPath }}>
+    <AuthContext.Provider value={{ user, session, role, loading, signIn, signUp, signOut, resetPassword, getDashboardPath }}>
       {children}
     </AuthContext.Provider>
   );
