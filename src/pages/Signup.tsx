@@ -64,8 +64,8 @@ export default function Signup() {
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" className="bg-white border-emerald-200" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-emerald-900">Phone Number (optional)</Label>
-              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+250 78..." className="bg-white border-emerald-200" />
+              <Label htmlFor="phone" className="text-emerald-900">Phone Number</Label>
+              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required placeholder="+250 78..." className="bg-white border-emerald-200" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-emerald-900">Password</Label>
