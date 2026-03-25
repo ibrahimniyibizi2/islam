@@ -13,6 +13,7 @@ import {
   Heart,
   FileCheck,
   Award,
+  Archive,
 } from 'lucide-react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
   { label: 'Masjids', href: '/dashboard/super-admin/masjids', icon: Building2 },
   { label: 'Roles', href: '/dashboard/super-admin/roles', icon: ShieldCheck },
   { label: 'Applications', href: '/dashboard/super-admin/applications', icon: FileStack },
+  { label: 'Abandoned', href: '/dashboard/super-admin/abandoned', icon: Archive },
   { label: 'View Certificates', href: '/dashboard/super-admin/certificates', icon: Award },
   { label: 'Generate Certificate', href: '/dashboard/super-admin/generate_certificate', icon: FileCheck },
   { label: 'Certificate Templates', href: '/dashboard/super-admin/create_certificate_templates', icon: FileText },
@@ -6080,6 +6082,255 @@ function SettingsPage() {
 
 import NikahApplicationForm from '@/components/nikah/NikahApplicationForm';
 
+// Abandoned Applications Page - Shows incomplete/abandoned applications
+function AbandonedApplicationsPage() {
+  const [abandonedApps, setAbandonedApps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedApp, setSelectedApp] = useState<any | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchAbandonedApplications();
+  }, []);
+
+  const fetchAbandonedApplications = async () => {
+    setLoading(true);
+    const allAbandoned: any[] = [];
+    
+    // Fetch incomplete nikah applications (missing critical fields)
+    try {
+      const { data: nikahData, error } = await supabase
+        .from('nikah_applications')
+        .select('id, reference_number, groom_name, bride_name, status, created_at, updated_at, groom_phone, bride_phone, preferred_date, preferred_masjid')
+        .or('groom_name.is.null,groom_name.eq.,bride_name.is.null,bride_name.eq.,preferred_date.is.null')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (!error && nikahData) {
+        nikahData.forEach(app => {
+          allAbandoned.push({
+            ...app,
+            type: 'nikah',
+            typeLabel: 'Nikah Application',
+            reason: getAbandonReason(app)
+          });
+        });
+      }
+    } catch (err) {
+      console.log('Error fetching abandoned nikah apps:', err);
+    }
+
+    // Fetch old pending applications (older than 30 days)
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { data: oldApps, error } = await supabase
+        .from('nikah_applications')
+        .select('id, reference_number, groom_name, bride_name, status, created_at, updated_at, groom_phone, bride_phone, preferred_date, preferred_masjid')
+        .eq('status', 'pending')
+        .lt('created_at', thirtyDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (!error && oldApps) {
+        oldApps.forEach(app => {
+          // Avoid duplicates
+          if (!allAbandoned.find(a => a.id === app.id)) {
+            allAbandoned.push({
+              ...app,
+              type: 'nikah',
+              typeLabel: 'Nikah Application',
+              reason: 'Pending for over 30 days'
+            });
+          }
+        });
+      }
+    } catch (err) {
+      console.log('Error fetching old pending apps:', err);
+    }
+    
+    setAbandonedApps(allAbandoned);
+    setLoading(false);
+  };
+
+  const getAbandonReason = (app: any): string => {
+    const missing = [];
+    if (!app.groom_name || app.groom_name === '') missing.push('Groom name');
+    if (!app.bride_name || app.bride_name === '') missing.push('Bride name');
+    if (!app.preferred_date) missing.push('Preferred date');
+    if (!app.preferred_masjid) missing.push('Masjid');
+    
+    if (missing.length > 0) {
+      return `Missing: ${missing.join(', ')}`;
+    }
+    return 'Incomplete application';
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this abandoned application? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('nikah_applications')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setAbandonedApps(prev => prev.filter(app => app.id !== id));
+      toast({
+        title: 'Deleted',
+        description: 'Abandoned application has been removed.',
+      });
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete application.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleContact = (app: any) => {
+    const phone = app.groom_phone || app.bride_phone;
+    if (phone) {
+      window.open(`tel:${phone}`, '_blank');
+    } else {
+      toast({
+        title: 'No Contact',
+        description: 'No phone number available for this application.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Abandoned Applications</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Incomplete or stale applications that need attention
+          </p>
+        </div>
+        <button
+          onClick={fetchAbandonedApplications}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          Refresh
+        </button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+          <p className="text-sm text-red-600 font-medium">Total Abandoned</p>
+          <p className="text-3xl font-bold text-red-700 mt-1">
+            {loading ? '...' : abandonedApps.length}
+          </p>
+        </div>
+        <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4">
+          <p className="text-sm text-yellow-600 font-medium">Missing Critical Info</p>
+          <p className="text-3xl font-bold text-yellow-700 mt-1">
+            {loading ? '...' : abandonedApps.filter(a => a.reason?.includes('Missing')).length}
+          </p>
+        </div>
+        <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+          <p className="text-sm text-orange-600 font-medium">Stale (>30 days)</p>
+          <p className="text-3xl font-bold text-orange-700 mt-1">
+            {loading ? '...' : abandonedApps.filter(a => a.reason?.includes('30 days')).length}
+          </p>
+        </div>
+      </div>
+
+      {/* Abandoned Applications List */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        ) : abandonedApps.length === 0 ? (
+          <div className="text-center py-12">
+            <Archive className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900">No Abandoned Applications</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              All applications are complete and up to date.
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {abandonedApps.map((app) => (
+              <div key={app.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-red-100 rounded-xl">
+                      <Archive className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-900">
+                          {app.groom_name || 'Unknown'} & {app.bride_name || 'Unknown'}
+                        </h4>
+                        <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">
+                          {app.typeLabel}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Ref: {app.reference_number || 'No Reference'} • Created: {formatDate(app.created_at)}
+                      </p>
+                      <p className="text-sm text-red-600 mt-2 font-medium">
+                        ⚠️ {app.reason}
+                      </p>
+                      {app.groom_phone && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          📞 Groom: {app.groom_phone}
+                        </p>
+                      )}
+                      {app.bride_phone && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          📞 Bride: {app.bride_phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleContact(app)}
+                      className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                      title="Contact Applicant"
+                    >
+                      Contact
+                    </button>
+                    <button
+                      onClick={() => handleDelete(app.id)}
+                      className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      title="Delete Application"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CreateNikahPage() {
   const { toast } = useToast();
   const [success, setSuccess] = useState(false);
@@ -6168,6 +6419,7 @@ export default function SuperAdminDashboard() {
         <Route path="masjids" element={<MasjidsPage />} />
         <Route path="roles" element={<RolesPage />} />
         <Route path="applications" element={<ViewAllApplicationsPage />} />
+        <Route path="abandoned" element={<AbandonedApplicationsPage />} />
         <Route path="certificates" element={<ViewCertificatesPage />} />
         <Route path="generate_certificate" element={<GenerateCertificatePage />} />
         <Route path="create_certificate_templates" element={<CreateCertificateTemplatePage />} />
