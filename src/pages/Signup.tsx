@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +14,9 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Rwanda phone validation: +250 7XX XXX XXX or 07XX XXX XXX
   const isValidRwandaPhone = (phone: string) => {
@@ -40,11 +41,29 @@ export default function Signup() {
     
     setIsLoading(true);
     const { error } = await signUp(email, password, name, phone);
-    setIsLoading(false);
+    
     if (error) {
+      setIsLoading(false);
       toast({ title: 'Signup failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+    
+    // Auto login after successful signup
+    const { error: loginError } = await signIn(email, password);
+    setIsLoading(false);
+    
+    if (loginError) {
+      toast({ 
+        title: 'Account created!', 
+        description: 'Please sign in with your new credentials.',
+      });
+      navigate('/login');
     } else {
-      toast({ title: 'Account created', description: 'Please check your email for a verification link.' });
+      toast({ 
+        title: 'Welcome!', 
+        description: 'Your account has been created successfully.',
+      });
+      navigate('/dashboard/user');
     }
   };
 
