@@ -17,12 +17,24 @@ export default function Signup() {
   const { signUp } = useAuth();
   const { toast } = useToast();
 
+  // Rwanda phone validation: +250 7XX XXX XXX or 07XX XXX XXX
+  const isValidRwandaPhone = (phone: string) => {
+    const rwandaRegex = /^(\+250|0)?[7][2-9]\d{7}$/;
+    return rwandaRegex.test(phone.replace(/\s/g, ''));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate password match
     if (password !== confirmPassword) {
       toast({ title: 'Password mismatch', description: 'Passwords do not match. Please try again.', variant: 'destructive' });
+      return;
+    }
+    
+    // Validate Rwanda phone number
+    if (!isValidRwandaPhone(phone)) {
+      toast({ title: 'Invalid phone number', description: 'Please enter a valid Rwanda phone number (e.g., +250 788 123 456 or 0788 123 456)', variant: 'destructive' });
       return;
     }
     
@@ -64,8 +76,19 @@ export default function Signup() {
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" className="bg-white border-emerald-200" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-emerald-900">Phone Number</Label>
-              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required placeholder="+250 78..." className="bg-white border-emerald-200" />
+              <Label htmlFor="phone" className="text-emerald-900">Phone Number (Rwanda)</Label>
+              <Input 
+                id="phone" 
+                type="tel" 
+                value={phone} 
+                onChange={(e) => setPhone(e.target.value)} 
+                required 
+                placeholder="+250 788 123 456" 
+                pattern="^(\+250|0)?[7][2-9]\d{7}$"
+                maxLength={16}
+                className="bg-white border-emerald-200" 
+              />
+              <p className="text-xs text-emerald-600">Format: +250 788 123 456 or 0788 123 456</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-emerald-900">Password</Label>
