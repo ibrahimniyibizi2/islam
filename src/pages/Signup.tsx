@@ -26,45 +26,56 @@ export default function Signup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('=== SIGNUP START ===');
     
     // Validate password match
     if (password !== confirmPassword) {
+      console.log('Password mismatch error');
       toast({ title: 'Password mismatch', description: 'Passwords do not match. Please try again.', variant: 'destructive' });
       return;
     }
     
     // Validate Rwanda phone number
+    console.log('Validating phone:', phone);
     if (!isValidRwandaPhone(phone)) {
+      console.log('Invalid phone format');
       toast({ title: 'Invalid phone number', description: 'Please enter a valid Rwanda phone number (e.g., +250 788 123 456 or 0788 123 456)', variant: 'destructive' });
       return;
     }
     
     setIsLoading(true);
+    console.log('Calling signUp with:', { email, name, phone });
     const { error } = await signUp(email, password, name, phone);
     
     if (error) {
+      console.log('Signup error:', error);
       setIsLoading(false);
       toast({ title: 'Signup failed', description: error.message, variant: 'destructive' });
       return;
     }
     
+    console.log('Signup successful, attempting auto-login...');
     // Auto login after successful signup
     const { error: loginError } = await signIn(email, password);
+    console.log('Login result:', { loginError });
     setIsLoading(false);
     
     if (loginError) {
+      console.log('Auto-login failed, redirecting to login page');
       toast({ 
         title: 'Account created!', 
         description: 'Please sign in with your new credentials.',
       });
       navigate('/login');
     } else {
+      console.log('Auto-login successful, redirecting to dashboard');
       toast({ 
         title: 'Welcome!', 
         description: 'Your account has been created successfully.',
       });
       navigate('/dashboard/user');
     }
+    console.log('=== SIGNUP END ===');
   };
 
   return (
