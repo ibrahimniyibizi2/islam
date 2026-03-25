@@ -10,7 +10,7 @@ interface AuthContextType {
   role: AppRole | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, name: string, phone?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   getDashboardPath: () => string;
@@ -73,16 +73,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error as Error | null };
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { name },
-      },
-    });
-    return { error: error as Error | null };
+  const signUp = async (email: string, password: string, name: string, phone?: string) => {
+    try {
+      console.log('Signing up with:', { email, name, phone });
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return { error: new Error('Please enter a valid email address') };
+      }
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`,
+          data: { full_name: name.trim(), phone: phone || null },
+        },
+      });
+      
+      if (error) {
+        console.error('Signup error:', error);
+        // Handle specific error messages
+        if (error.message.includes('User already registered')) {
+          return { error: new Error('An account with this email already exists. Please sign in instead.') };
+        }
+        return { error: error as Error };
+      }
+      
+      console.log('Signup success:', data);
+      return { error: null };
+    } catch (err) {
+      console.error('Unexpected signup error:', err);
+      return { error: err as Error };
+    }
   };
 
   const signOut = async () => {

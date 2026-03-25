@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
@@ -18,7 +19,7 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const { error } = await signUp(email, password, name);
+    const { error } = await signUp(email, password, name, phone);
     setIsLoading(false);
     if (error) {
       toast({ title: 'Signup failed', description: error.message, variant: 'destructive' });
@@ -53,6 +54,10 @@ export default function Signup() {
             <div className="space-y-2">
               <Label htmlFor="email" className="text-emerald-900">Email</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" className="bg-white border-emerald-200" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-emerald-900">Phone Number (optional)</Label>
+              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+250 78..." className="bg-white border-emerald-200" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-emerald-900">Password</Label>
