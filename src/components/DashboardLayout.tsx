@@ -36,14 +36,9 @@ export default function DashboardLayout({ children, title, navItems }: Dashboard
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
-              <Church className="h-5 w-5 text-sidebar-primary-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-sidebar-foreground">IslamRwanda</p>
-              <p className="text-xs text-sidebar-foreground/60">{role ? ROLE_LABELS[role] : ''}</p>
-            </div>
+          <div>
+            <p className="text-sm font-semibold text-sidebar-foreground">IslamRwanda</p>
+            <p className="text-xs text-sidebar-foreground/60">{role ? ROLE_LABELS[role] : ''}</p>
           </div>
         </SidebarHeader>
         <SidebarContent>
