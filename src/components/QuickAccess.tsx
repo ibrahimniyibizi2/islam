@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Heart, Home, Building2, ArrowRight, Clock, DollarSign, Users, Star } from "lucide-react";
+import { FileText, Heart, Home, Building2, ArrowRight, Clock, DollarSign, Users, Star, ClipboardList } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 
 const popularServices = [
   {
@@ -62,6 +63,7 @@ const popularServices = [
  
 const QuickAccess = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedService, setSelectedService] = useState<typeof popularServices[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
  
@@ -100,7 +102,7 @@ const QuickAccess = () => {
         </div>
  
         {/* Popular Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {popularServices.map((service, index) => {
             const IconComponent = service.icon;
             return (
@@ -138,6 +140,36 @@ const QuickAccess = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Track Applications CTA */}
+        <div 
+          onClick={() => navigate(user ? '/dashboard/user/track' : '/login')}
+          className="group relative bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300"
+        >
+          <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-white/20 backdrop-blur-sm rounded-xl">
+                <ClipboardList className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">
+                  Track Your Applications
+                </h3>
+                <p className="text-emerald-100">
+                  {user 
+                    ? 'View and manage all your submitted applications in one place'
+                    : 'Sign in to track your application status and history'
+                  }
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-white group-hover:translate-x-2 transition-transform">
+              <span className="font-medium hidden sm:inline">{user ? 'Go to Dashboard' : 'Sign In'}</span>
+              <ArrowRight className="w-6 h-6" />
+            </div>
+          </div>
         </div>
  
         {/* Service Detail Modal */}
