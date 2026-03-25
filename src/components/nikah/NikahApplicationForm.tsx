@@ -66,6 +66,11 @@ const getMinDate = () => {
   return minDate.toISOString().split('T')[0];
 };
 
+// Capitalize first letter of each word
+const capitalizeWords = (str: string): string => {
+  return str.replace(/\b\w/g, char => char.toUpperCase());
+};
+
 interface FieldProps {
   label: string;
   field: keyof FormData;
@@ -83,6 +88,13 @@ const Field = ({ label, field, type = 'text', placeholder = '', required = false
     let value = e.target.value;
     if (numeric) {
       value = value.replace(/\D/g, '');
+    }
+    // Capitalize names (fields ending with _name or containing name)
+    const nameFields = ['groom_name', 'groom_father_name', 'groom_mother_name', 
+                        'bride_name', 'bride_father_name', 'bride_mother_name',
+                        'wali_name', 'male_witness_name', 'female_witness1_name', 'female_witness2_name'];
+    if (nameFields.includes(field)) {
+      value = capitalizeWords(value);
     }
     onChange(field, value);
   };
