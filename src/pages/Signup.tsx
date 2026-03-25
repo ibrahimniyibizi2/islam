@@ -12,12 +12,20 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate password match
+    if (password !== confirmPassword) {
+      toast({ title: 'Password mismatch', description: 'Passwords do not match. Please try again.', variant: 'destructive' });
+      return;
+    }
+    
     setIsLoading(true);
     const { error } = await signUp(email, password, name, phone);
     setIsLoading(false);
@@ -62,6 +70,10 @@ export default function Signup() {
             <div className="space-y-2">
               <Label htmlFor="password" className="text-emerald-900">Password</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="••••••••" className="bg-white border-emerald-200" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-emerald-900">Confirm Password</Label>
+              <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} placeholder="••••••••" className="bg-white border-emerald-200" />
             </div>
             <Button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white" disabled={isLoading}>
               {isLoading ? 'Creating...' : 'Create Account'}
