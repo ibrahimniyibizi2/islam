@@ -88,7 +88,7 @@ export default function Signup() {
                 maxLength={16}
                 className="bg-white border-emerald-200" 
               />
-              <p className="text-xs text-emerald-600">Format: +250 788 123 456 or 0788 123 456</p>
+              <p className="text-xs text-emerald-600">Format: +250 7XX XXX XXX (e.g., +250 788 123 456)</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-emerald-900">Password</Label>
