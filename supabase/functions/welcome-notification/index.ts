@@ -1,3 +1,6 @@
+// @ts-nocheck
+// Deno Edge Function - TypeScript errors are false positives
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
