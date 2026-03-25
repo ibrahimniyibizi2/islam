@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Heart, Home, Building2, ArrowRight, Clock, DollarSign, Users, ArrowRight as ArrowRightIcon } from "lucide-react";
+import { FileText, Heart, Home, Building2, ArrowRight, Clock, DollarSign, Users, Star } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,8 @@ const popularServices = [
     providedBy: "Islamic Affairs Division",
     requirements: ["Valid ID", "Witnesses (2)", "Written Declaration"],
     applicationUrl: "/shahada-application",
+    color: "from-emerald-500 to-teal-500",
+    bgColor: "bg-emerald-50",
   },
   {
     icon: Heart,
@@ -27,6 +29,8 @@ const popularServices = [
     providedBy: "Supreme Council of Islamic Affairs",
     requirements: ["Valid IDs (Both)", "Birth Certificates", "Passport Photos", "Wali Consent"],
     applicationUrl: "/nikah-application",
+    color: "from-pink-500 to-rose-500",
+    bgColor: "bg-pink-50",
   },
   {
     icon: Home,
@@ -38,6 +42,8 @@ const popularServices = [
     providedBy: "Local Administration",
     requirements: ["Valid ID", "Proof of Address", "Mosque Verification"],
     applicationUrl: null,
+    color: "from-blue-500 to-indigo-500",
+    bgColor: "bg-blue-50",
   },
   {
     icon: Building2,
@@ -49,6 +55,8 @@ const popularServices = [
     providedBy: "Business Registration Bureau",
     requirements: ["Business Plan", "ID Documents", "Address Proof", "Category Selection"],
     applicationUrl: null,
+    color: "from-orange-500 to-amber-500",
+    bgColor: "bg-orange-50",
   },
 ];
  
@@ -75,43 +83,57 @@ const QuickAccess = () => {
  
   const IconComponent = selectedService?.icon || FileText;
   return (
-    <section className="py-12 md:py-16 bg-gray-50">
+    <section className="py-16 md:py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="mb-8">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 rounded-full px-4 py-1.5 mb-4">
+            <Star className="w-4 h-4 fill-emerald-700" />
+            <span className="text-sm font-semibold">Most Requested</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
             Popular Services
           </h2>
-          <p className="text-gray-600">
-            Quick access to most requested services
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Quick access to our most requested Islamic services. Click any service to learn more and apply.
           </p>
         </div>
  
-        {/* Popular Services List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Popular Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {popularServices.map((service, index) => {
             const IconComponent = service.icon;
             return (
               <div
                 key={index}
-                className="group bg-white rounded-lg p-5 border border-gray-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300 cursor-pointer"
+                className="group relative bg-white rounded-2xl p-6 border border-gray-100 hover:border-transparent hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden"
                 onClick={() => handleServiceClick(service)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                      <IconComponent className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors">
-                        {service.title}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {service.description}
-                      </p>
+                {/* Gradient background on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+                
+                {/* Icon */}
+                <div className={`relative w-14 h-14 ${service.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="w-7 h-7 text-gray-700" />
+                </div>
+
+                {/* Content */}
+                <div className="relative">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
+                    {service.title}
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-4 leading-relaxed">
+                    {service.description}
+                  </p>
+                  
+                  {/* Price tag */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-emerald-600 font-semibold text-sm">{service.price}</span>
+                    <div className="flex items-center gap-1 text-gray-400 group-hover:text-emerald-600 transition-colors">
+                      <span className="text-sm font-medium">Details</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
                 </div>
               </div>
             );
@@ -120,21 +142,21 @@ const QuickAccess = () => {
  
         {/* Service Detail Modal */}
         <Dialog open={isModalOpen} onOpenChange={handleCloseModal}>
-          <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl">
             {selectedService && (
               <>
                 {/* Header */}
-                <div className="p-6 bg-emerald-50">
+                <div className={`p-6 bg-gradient-to-r ${selectedService.color}`}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-emerald-100 rounded-xl">
-                        <IconComponent className="w-8 h-8 text-emerald-600" />
+                      <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                        <IconComponent className="w-8 h-8 text-white" />
                       </div>
                       <div>
-                        <DialogTitle className="text-2xl font-bold text-gray-900">
+                        <DialogTitle className="text-2xl font-bold text-white">
                           {selectedService.title}
                         </DialogTitle>
-                        <Badge variant="secondary" className="mt-1">
+                        <Badge className="mt-1 bg-white/20 text-white border-0">
                           Popular Service
                         </Badge>
                       </div>
@@ -159,57 +181,57 @@ const QuickAccess = () => {
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">
                       Required Documents
                     </h3>
-                    <ul className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
                       {selectedService.requirements.map((req, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-gray-600">
+                        <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
                           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
                           {req}
-                        </li>
+                        </span>
                       ))}
-                    </ul>
+                    </div>
                   </div>
  
                   {/* Details Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4">
                       <div className="flex items-center gap-2 text-gray-600 mb-1">
                         <Clock className="w-4 h-4" />
-                        <span className="text-sm font-medium">Processing Time</span>
+                        <span className="text-sm font-medium">Processing</span>
                       </div>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-lg font-bold text-gray-900">
                         {selectedService.processingTime}
                       </p>
                     </div>
  
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-gray-600 mb-1">
+                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4">
+                      <div className="flex items-center gap-2 text-emerald-600 mb-1">
                         <DollarSign className="w-4 h-4" />
                         <span className="text-sm font-medium">Price</span>
                       </div>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-lg font-bold text-emerald-700">
                         {selectedService.price}
                       </p>
                     </div>
  
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-gray-600 mb-1">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                      <div className="flex items-center gap-2 text-blue-600 mb-1">
                         <Users className="w-4 h-4" />
-                        <span className="text-sm font-medium">Provided by</span>
+                        <span className="text-sm font-medium">Provider</span>
                       </div>
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-bold text-blue-700">
                         {selectedService.providedBy}
                       </p>
                     </div>
                   </div>
  
                   {/* Apply Button */}
-                  <div className="pt-4 border-t border-gray-200">
+                  <div className="pt-4 border-t border-gray-100">
                     <Button 
-                      className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-lg"
+                      className={`w-full h-12 bg-gradient-to-r ${selectedService.color} hover:opacity-90 text-white font-semibold text-lg rounded-xl`}
                       onClick={handleApply}
                     >
                       Apply Now
-                      <ArrowRightIcon className="w-5 h-5 ml-2" />
+                      <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                     <p className="text-center text-sm text-gray-500 mt-2">
                       Click to start your application process
