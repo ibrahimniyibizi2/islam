@@ -24,8 +24,7 @@ const Hero = () => {
   ];
 
   return (
-    <section 
-      className="relative min-h-[500px] flex items-center justify-center overflow-hidden"
+    <section className="relative min-h-[400px] sm:min-h-[500px] flex items-center justify-center overflow-hidden py-8 sm:py-0"
       style={{
         backgroundImage: `linear-gradient(135deg, rgba(6, 78, 59, 0.95) 0%, rgba(5, 150, 105, 0.9) 50%, rgba(16, 185, 129, 0.85) 100%), url('/hero-mosque.jpg')`,
         backgroundSize: 'cover',
@@ -39,9 +38,9 @@ const Hero = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-6">
-            <Sparkles className="w-4 h-4 text-yellow-300" />
-            <span className="text-white/90 text-sm font-medium">Rwanda's Premier Islamic Services Platform</span>
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-300" />
+            <span className="text-white/90 text-xs sm:text-sm font-medium">Rwanda's Premier Islamic Services Platform</span>
           </div>
 
       {/* Welcome Text */}
@@ -105,7 +104,7 @@ const Hero = () => {
       </div>
 
       {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-12 sm:h-20 bg-gradient-to-t from-white to-transparent"></div>
     </section>
   );
 };

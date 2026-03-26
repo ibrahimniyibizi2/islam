@@ -124,43 +124,43 @@ const Services = () => {
     // Add other service routes here as needed
   };
   return (
-    <section className="py-12 md:py-16 bg-white">
+    <section className="py-10 sm:py-12 md:py-16 bg-white">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="mb-10">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
+        <div className="mb-6 sm:mb-10 px-2 sm:px-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
             Service Categories
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Browse services by category and apply online
           </p>
         </div>
 
         {/* Service Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 px-1 sm:px-0">
           {serviceCategories.map((service, index) => {
             const IconComponent = service.icon;
             return (
               <Card
                 key={index}
-                className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-gray-200 hover:border-emerald-200"
+                className="group hover:shadow-md sm:hover:shadow-lg transition-all duration-300 cursor-pointer border-gray-200 hover:border-emerald-200 active:scale-[0.98]"
                 onClick={() => handleServiceClick(service)}
               >
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-lg ${service.color}`}>
-                      <IconComponent className="w-6 h-6" />
+                <CardContent className="p-3.5 sm:p-5">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className={`p-2.5 sm:p-3 rounded-lg ${service.color} shrink-0`}>
+                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors truncate">
                         {service.title}
                       </h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed line-clamp-2">
                         {service.description}
                       </p>
                       <Button 
                         variant="link" 
-                        className="p-0 h-auto text-emerald-600 hover:text-emerald-700 mt-2 font-medium"
+                        className="p-0 h-auto text-emerald-600 hover:text-emerald-700 mt-1.5 sm:mt-2 font-medium text-xs sm:text-sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleServiceClick(service);

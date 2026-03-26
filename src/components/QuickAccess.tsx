@@ -88,52 +88,52 @@ const QuickAccess = () => {
     <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 rounded-full px-4 py-1.5 mb-4">
-            <Star className="w-4 h-4 fill-emerald-700" />
-            <span className="text-sm font-semibold">Most Requested</span>
+        <div className="text-center mb-8 sm:mb-12 px-4">
+          <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 rounded-full px-3 sm:px-4 py-1.5 mb-3 sm:mb-4">
+            <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-emerald-700" />
+            <span className="text-xs sm:text-sm font-semibold">Most Requested</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
             Popular Services
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-2 sm:px-0">
             Quick access to our most requested Islamic services. Click any service to learn more and apply.
           </p>
         </div>
  
         {/* Popular Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 px-2 sm:px-0">
           {popularServices.map((service, index) => {
             const IconComponent = service.icon;
             return (
               <div
                 key={index}
-                className="group relative bg-white rounded-2xl p-6 border border-gray-100 hover:border-transparent hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden"
+                className="group relative bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-100 hover:border-transparent hover:shadow-lg sm:hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden active:scale-[0.98]"
                 onClick={() => handleServiceClick(service)}
               >
                 {/* Gradient background on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
                 
                 {/* Icon */}
-                <div className={`relative w-14 h-14 ${service.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <IconComponent className="w-7 h-7 text-gray-700" />
+                <div className={`relative w-12 h-12 sm:w-14 sm:h-14 ${service.bgColor} rounded-xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-gray-700" />
                 </div>
 
                 {/* Content */}
                 <div className="relative">
-                  <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
+                  <h3 className="font-bold text-base sm:text-lg text-gray-900 mb-1.5 sm:mb-2 group-hover:text-emerald-600 transition-colors">
                     {service.title}
                   </h3>
-                  <p className="text-gray-500 text-sm mb-4 leading-relaxed">
+                  <p className="text-gray-500 text-sm mb-3 sm:mb-4 leading-relaxed line-clamp-2">
                     {service.description}
                   </p>
                   
                   {/* Price tag */}
                   <div className="flex items-center justify-between">
-                    <span className="text-emerald-600 font-semibold text-sm">{service.price}</span>
+                    <span className="text-emerald-600 font-semibold text-xs sm:text-sm">{service.price}</span>
                     <div className="flex items-center gap-1 text-gray-400 group-hover:text-emerald-600 transition-colors">
-                      <span className="text-sm font-medium">Details</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <span className="text-xs sm:text-sm font-medium">Details</span>
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>
@@ -145,29 +145,29 @@ const QuickAccess = () => {
         {/* Track Applications CTA */}
         <div 
           onClick={() => navigate(user ? '/dashboard/user/track' : '/login')}
-          className="group relative bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-4 sm:p-6 cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300"
+          className="group relative bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 cursor-pointer overflow-hidden hover:shadow-lg sm:hover:shadow-xl transition-all duration-300 mx-2 sm:mx-0 active:scale-[0.98]"
         >
           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-3 sm:p-4 bg-white/20 backdrop-blur-sm rounded-xl shrink-0">
-                <ClipboardList className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+          <div className="relative flex flex-row items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 min-w-0 flex-1">
+              <div className="p-2 sm:p-3 md:p-4 bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl shrink-0">
+                <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
               </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-0.5 sm:mb-1">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm sm:text-base md:text-xl font-bold text-white mb-0 sm:mb-1 truncate">
                   Track Your Applications
                 </h3>
-                <p className="text-sm text-emerald-100 leading-snug">
+                <p className="text-xs sm:text-sm text-emerald-100 leading-snug line-clamp-2 sm:line-clamp-none">
                   {user 
-                    ? 'View and manage all your submitted applications in one place'
-                    : 'Sign in to track your application status and history'
+                    ? 'View and manage all your submitted applications'
+                    : 'Sign in to track your application status'
                   }
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-white group-hover:translate-x-2 transition-transform self-end sm:self-auto">
-              <span className="font-medium text-sm hidden sm:inline">{user ? 'Go to Dashboard' : 'Sign In'}</span>
-              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="flex items-center gap-1 sm:gap-2 text-white group-hover:translate-x-1 sm:group-hover:translate-x-2 transition-transform shrink-0">
+              <span className="font-medium text-xs sm:text-sm hidden sm:inline">{user ? 'Go to Dashboard' : 'Sign In'}</span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             </div>
           </div>
         </div>
