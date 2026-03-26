@@ -201,70 +201,75 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Application Form</CardTitle>
+    <Card className="shadow-sm">
+      <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
+        <CardTitle className="text-lg sm:text-xl">Application Form</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-8">
+      <CardContent className="px-4 sm:px-6">
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
           {/* Personal Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-600" />
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
               Personal Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="firstName" className="text-sm">First Name *</Label>
                 <Input
                   id="firstName"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange("firstName", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="lastName" className="text-sm">Last Name *</Label>
                 <Input
                   id="lastName"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange("lastName", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="email" className="text-sm">Email Address *</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="phone" className="text-sm">Phone Number *</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="dateOfBirth" className="text-sm">Date of Birth *</Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="gender" className="text-sm">Gender *</Label>
                 <Select value={formData.gender} onValueChange={(value) => handleInputChange("gender", value)} required>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 sm:h-10">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
@@ -273,163 +278,176 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="nationality">Nationality *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="nationality" className="text-sm">Nationality *</Label>
                 <Input
                   id="nationality"
                   value={formData.nationality}
                   onChange={(e) => handleInputChange("nationality", e.target.value)}
-                  placeholder="e.g., Rwandan, Kenyan, Ugandan"
+                  placeholder="e.g., Rwandan"
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
             </div>
           </div>
 
           {/* Address Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-emerald-600" />
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
               Address Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="address">Address *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2 sm:col-span-2">
+                <Label htmlFor="address" className="text-sm">Address *</Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="city">City *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="city" className="text-sm">City *</Label>
                 <Input
                   id="city"
                   value={formData.city}
                   onChange={(e) => handleInputChange("city", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="district">District *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="district" className="text-sm">District *</Label>
                 <Input
                   id="district"
                   value={formData.district}
                   onChange={(e) => handleInputChange("district", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
             </div>
           </div>
 
           {/* Conversion Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <FileText className="w-5 h-5 text-emerald-600" />
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
               Conversion Information
             </h3>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentReligion">Current Religion *</Label>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="currentReligion" className="text-sm">Current Religion *</Label>
                 <Input
                   id="currentReligion"
                   value={formData.currentReligion}
                   onChange={(e) => handleInputChange("currentReligion", e.target.value)}
                   required
+                  className="h-11 sm:h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="conversionReason">Reason for Converting to Islam *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="conversionReason" className="text-sm">Reason for Converting to Islam *</Label>
                 <Textarea
                   id="conversionReason"
                   placeholder="Please explain why you want to convert to Islam"
                   value={formData.conversionReason}
                   onChange={(e) => handleInputChange("conversionReason", e.target.value)}
                   required
+                  className="min-h-[100px] sm:min-h-[80px]"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="islamicKnowledge">What do you know about Islam? *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="islamicKnowledge" className="text-sm">What do you know about Islam? *</Label>
                 <Textarea
                   id="islamicKnowledge"
                   placeholder="Describe your knowledge of Islamic beliefs and practices"
                   value={formData.islamicKnowledge}
                   onChange={(e) => handleInputChange("islamicKnowledge", e.target.value)}
                   required
+                  className="min-h-[100px] sm:min-h-[80px]"
                 />
               </div>
             </div>
           </div>
 
           {/* Witnesses Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-600" />
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
               Witnesses Information
             </h3>
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <h4 className="font-medium">Witness 1</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="witness1Name">Full Name *</Label>
+            <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-2 sm:space-y-3">
+                <h4 className="font-medium text-sm sm:text-base">Witness 1</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="witness1Name" className="text-sm">Full Name *</Label>
                     <Input
                       id="witness1Name"
                       value={formData.witness1Name}
                       onChange={(e) => handleInputChange("witness1Name", e.target.value)}
                       required
+                      className="h-11 sm:h-10"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="witness1Phone">Phone Number *</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="witness1Phone" className="text-sm">Phone Number *</Label>
                     <Input
                       id="witness1Phone"
                       value={formData.witness1Phone}
                       onChange={(e) => handleInputChange("witness1Phone", e.target.value)}
                       required
+                      className="h-11 sm:h-10"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="witness1Relationship">Relationship *</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="witness1Relationship" className="text-sm">Relationship *</Label>
                     <Input
                       id="witness1Relationship"
                       value={formData.witness1Relationship}
                       onChange={(e) => handleInputChange("witness1Relationship", e.target.value)}
                       required
+                      className="h-11 sm:h-10"
                     />
                   </div>
                 </div>
               </div>
               
-              <div className="space-y-3">
-                <h4 className="font-medium">Witness 2</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="witness2Name">Full Name *</Label>
+              <div className="space-y-2 sm:space-y-3">
+                <h4 className="font-medium text-sm sm:text-base">Witness 2</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="witness2Name" className="text-sm">Full Name *</Label>
                     <Input
                       id="witness2Name"
                       value={formData.witness2Name}
                       onChange={(e) => handleInputChange("witness2Name", e.target.value)}
                       required
+                      className="h-11 sm:h-10"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="witness2Phone">Phone Number *</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="witness2Phone" className="text-sm">Phone Number *</Label>
                     <Input
                       id="witness2Phone"
                       value={formData.witness2Phone}
                       onChange={(e) => handleInputChange("witness2Phone", e.target.value)}
                       required
+                      className="h-11 sm:h-10"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="witness2Relationship">Relationship *</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="witness2Relationship" className="text-sm">Relationship *</Label>
                     <Input
                       id="witness2Relationship"
                       value={formData.witness2Relationship}
                       onChange={(e) => handleInputChange("witness2Relationship", e.target.value)}
                       required
+                      className="h-11 sm:h-10"
                     />
                   </div>
                 </div>
@@ -438,31 +456,33 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
           </div>
 
           {/* Agreements */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <FileText className="w-5 h-5 text-emerald-600" />
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
               Declarations
             </h3>
             <div className="space-y-3">
-              <div className="flex items-start space-x-2">
+              <div className="flex items-start space-x-2 sm:space-x-3">
                 <Checkbox
                   id="declaration"
                   checked={formData.declaration}
                   onCheckedChange={(checked) => handleInputChange("declaration", checked as boolean)}
                   required
+                  className="mt-0.5"
                 />
-                <Label htmlFor="declaration" className="text-sm">
+                <Label htmlFor="declaration" className="text-xs sm:text-sm leading-relaxed">
                   I declare that I am converting to Islam willingly and without any coercion, and I understand the meaning and implications of the Shahada declaration.
                 </Label>
               </div>
-              <div className="flex items-start space-x-2">
+              <div className="flex items-start space-x-2 sm:space-x-3">
                 <Checkbox
                   id="understanding"
                   checked={formData.understanding}
                   onCheckedChange={(checked) => handleInputChange("understanding", checked as boolean)}
                   required
+                  className="mt-0.5"
                 />
-                <Label htmlFor="understanding" className="text-sm">
+                <Label htmlFor="understanding" className="text-xs sm:text-sm leading-relaxed">
                   I understand that this certificate will be issued based on the information provided, and I affirm that all information is true and accurate.
                 </Label>
               </div>
@@ -470,19 +490,19 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="flex-1"
+              className="flex-1 h-11 sm:h-10 order-2 sm:order-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+              className="flex-1 h-11 sm:h-10 bg-emerald-600 hover:bg-emerald-700 order-1 sm:order-2"
             >
               {isSubmitting ? (
                 <>

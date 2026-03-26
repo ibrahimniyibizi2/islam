@@ -100,7 +100,7 @@ const Field = ({ label, field, type = 'text', placeholder = '', required = false
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 sm:space-y-2">
       <Label className="text-sm font-medium">{label}{required && <span className="text-destructive ml-0.5">*</span>}</Label>
       <div className="flex items-center gap-2">
         {icon}
@@ -112,6 +112,7 @@ const Field = ({ label, field, type = 'text', placeholder = '', required = false
           inputMode={numeric ? 'numeric' : undefined}
           pattern={numeric ? '[0-9]*' : undefined}
           min={type === 'date' ? getMinDate() : undefined}
+          className="h-11 sm:h-10 text-base sm:text-sm"
         />
       </div>
     </div>
@@ -348,25 +349,25 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
   ) : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 sm:space-y-6">
       {/* Progress */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {STEPS.map((s, i) => (
-          <div key={s} className="flex items-center gap-1 flex-1">
-            <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold shrink-0 ${i <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+          <div key={s} className="flex items-center gap-1 flex-1 min-w-[60px]">
+            <div className={`flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-full text-sm sm:text-xs font-semibold shrink-0 ${i <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
               {i + 1}
             </div>
             <span className={`text-xs hidden sm:block truncate ${i <= step ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{s}</span>
-            {i < STEPS.length - 1 && <div className={`h-0.5 flex-1 ${i < step ? 'bg-primary' : 'bg-border'}`} />}
+            {i < STEPS.length - 1 && <div className={`h-0.5 flex-1 min-w-[20px] ${i < step ? 'bg-primary' : 'bg-border'}`} />}
           </div>
         ))}
       </div>
 
       {/* Step 0: Groom */}
       {step === 0 && (
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-lg">Groom Information</CardTitle></CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 px-4 sm:px-6"><CardTitle className="text-base sm:text-lg">Groom Information</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 sm:gap-4 sm:grid-cols-2 px-4 sm:px-6">
             <Field label="Full Name" field="groom_name" required placeholder="As on national ID" form={form} onChange={handleFieldChange} icon={<User className="w-4 h-4 text-blue-500 shrink-0" />} />
             <Field label="National ID Number" field="groom_national_id" required placeholder="16 digits" form={form} onChange={handleFieldChange} numeric icon={<CreditCard className="w-4 h-4 text-blue-500 shrink-0" />} />
             <Field label="Father's Name" field="groom_father_name" form={form} onChange={handleFieldChange} icon={<User className="w-4 h-4 text-blue-400 shrink-0" />} />
@@ -374,10 +375,10 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
             <Field label="Phone" field="groom_phone" type="tel" required placeholder="07XXXXXXXX" form={form} onChange={handleFieldChange} numeric icon={<Smartphone className="w-4 h-4 text-blue-500 shrink-0" />} />
             <Field label="Email" field="groom_email" type="email" form={form} onChange={handleFieldChange} />
             <Field label="Address / District" field="groom_address" form={form} onChange={handleFieldChange} />
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:space-y-2">
               <Label className="text-sm font-medium">Marital Status</Label>
               <Select value={form.groom_marital_status} onValueChange={setSelect('groom_marital_status')}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>{MARITAL_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
               </Select>
             </div>
@@ -387,9 +388,9 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
 
       {/* Step 1: Bride */}
       {step === 1 && (
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-lg">Bride Information</CardTitle></CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 px-4 sm:px-6"><CardTitle className="text-base sm:text-lg">Bride Information</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 sm:gap-4 sm:grid-cols-2 px-4 sm:px-6">
             <Field label="Full Name" field="bride_name" required placeholder="As on national ID" form={form} onChange={handleFieldChange} icon={<User className="w-4 h-4 text-pink-500 shrink-0" />} />
             <Field label="National ID Number" field="bride_national_id" required placeholder="16 digits" form={form} onChange={handleFieldChange} numeric icon={<CreditCard className="w-4 h-4 text-pink-500 shrink-0" />} />
             <Field label="Father's Name" field="bride_father_name" form={form} onChange={handleFieldChange} icon={<User className="w-4 h-4 text-blue-400 shrink-0" />} />
@@ -397,10 +398,10 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
             <Field label="Phone" field="bride_phone" type="tel" required placeholder="07XXXXXXXX" form={form} onChange={handleFieldChange} numeric icon={<Smartphone className="w-4 h-4 text-pink-500 shrink-0" />} />
             <Field label="Email" field="bride_email" type="email" form={form} onChange={handleFieldChange} />
             <Field label="Address / District" field="bride_address" form={form} onChange={handleFieldChange} />
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:space-y-2">
               <Label className="text-sm font-medium">Marital Status</Label>
               <Select value={form.bride_marital_status} onValueChange={setSelect('bride_marital_status')}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>{MARITAL_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
               </Select>
             </div>
@@ -410,15 +411,15 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
 
       {/* Step 2: Marriage Details */}
       {step === 2 && (
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-lg">Marriage Details & Booking</CardTitle></CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 px-4 sm:px-6"><CardTitle className="text-base sm:text-lg">Marriage Details & Booking</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 sm:gap-4 sm:grid-cols-2 px-4 sm:px-6">
             <Field label="Preferred Date" field="preferred_date" type="date" required form={form} onChange={handleFieldChange} />
             <Field label="Preferred Time" field="preferred_time" type="time" form={form} onChange={handleFieldChange} />
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:space-y-2">
               <Label className="text-sm font-medium">Preferred Masjid</Label>
               <Select value={form.preferred_masjid} onValueChange={setSelect('preferred_masjid')}>
-                <SelectTrigger><SelectValue placeholder="Select a masjid" /></SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10"><SelectValue placeholder="Select a masjid" /></SelectTrigger>
                 <SelectContent>
                   {mosques.map(m => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
                   <SelectItem value="other">Other</SelectItem>
@@ -426,10 +427,10 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
               </Select>
             </div>
             <Field label="Preferred Imam / Sheikh" field="preferred_imam" placeholder="Optional" form={form} onChange={handleFieldChange} />
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:space-y-2">
               <Label className="text-sm font-medium">Venue Type</Label>
               <Select value={form.venue_type} onValueChange={setSelect('venue_type')}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="masjid">At Masjid</SelectItem>
                   <SelectItem value="custom">Custom Venue</SelectItem>
@@ -439,22 +440,23 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
             {form.venue_type === 'custom' && <Field label="Custom Venue Address" field="custom_venue_address" form={form} onChange={handleFieldChange} />}
             <Field label="Mahr Amount (RWF)" field="mahr_amount" type="number" placeholder="e.g. 1000000" form={form} onChange={handleFieldChange} />
             <Field label="Mahr Description" field="mahr_description" placeholder="e.g. Cash + Gold ring" form={form} onChange={handleFieldChange} />
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:space-y-2">
               <Label className="text-sm font-medium">Service Tier</Label>
               <Select value={form.service_tier} onValueChange={setSelect('service_tier')}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-11 sm:h-10"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="standard">Standard</SelectItem>
                   <SelectItem value="premium">Premium</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="sm:col-span-2 space-y-1.5">
+            <div className="sm:col-span-2 space-y-1.5 sm:space-y-2">
               <Label className="text-sm font-medium">Special Requests</Label>
               <Textarea 
                 value={form.special_requests} 
                 onChange={(e) => handleFieldChange('special_requests', e.target.value)} 
                 placeholder="Any special requirements..." 
+                className="min-h-[80px] sm:min-h-[60px]"
               />
             </div>
           </CardContent>
@@ -463,12 +465,12 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
 
       {/* Step 3: Witnesses & Wali */}
       {step === 3 && (
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-lg">Witnesses & Wali (Guardian)</CardTitle></CardHeader>
-          <CardContent className="space-y-5">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 px-4 sm:px-6"><CardTitle className="text-base sm:text-lg">Witnesses & Wali (Guardian)</CardTitle></CardHeader>
+          <CardContent className="space-y-4 sm:space-y-5 px-4 sm:px-6">
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-2">Bride's Wali (Guardian)</h4>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <h4 className="text-sm font-semibold text-foreground mb-2 sm:mb-3">Bride's Wali (Guardian)</h4>
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                 <Field label="Wali Full Name" field="wali_name" required form={form} onChange={handleFieldChange} icon={<User className="w-4 h-4 text-blue-500 shrink-0" />} />
                 <Field label="Relation to Bride" field="wali_relation" placeholder="e.g. Father" form={form} onChange={handleFieldChange} />
                 <Field label="Phone" field="wali_phone" type="tel" form={form} onChange={handleFieldChange} numeric icon={<Smartphone className="w-4 h-4 text-blue-400 shrink-0" />} />
@@ -476,15 +478,15 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-2">Male Witness</h4>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <h4 className="text-sm font-semibold text-foreground mb-2 sm:mb-3">Male Witness</h4>
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                 <Field label="Full Name" field="male_witness_name" required form={form} onChange={handleFieldChange} icon={<User className="w-4 h-4 text-blue-500 shrink-0" />} />
                 <Field label="Phone" field="male_witness_phone" type="tel" form={form} onChange={handleFieldChange} numeric icon={<Smartphone className="w-4 h-4 text-blue-400 shrink-0" />} />
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-2">Female Witnesses</h4>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <h4 className="text-sm font-semibold text-foreground mb-2 sm:mb-3">Female Witnesses</h4>
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                 <Field label="Witness 1 Name" field="female_witness1_name" required form={form} onChange={handleFieldChange} icon={<User className="w-4 h-4 text-pink-500 shrink-0" />} />
                 <Field label="Witness 1 Phone" field="female_witness1_phone" type="tel" form={form} onChange={handleFieldChange} numeric icon={<Smartphone className="w-4 h-4 text-pink-400 shrink-0" />} />
                 <Field label="Witness 2 Name" field="female_witness2_name" form={form} onChange={handleFieldChange} icon={<User className="w-4 h-4 text-pink-400 shrink-0" />} />
@@ -497,11 +499,11 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
 
       {/* Step 4: Review */}
       {step === 4 && (
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-lg">Review Your Application</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 px-4 sm:px-6"><CardTitle className="text-base sm:text-lg">Review Your Application</CardTitle></CardHeader>
+          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
             <div>
-              <h4 className="text-sm font-semibold text-primary mb-1">Groom</h4>
+              <h4 className="text-sm font-semibold text-primary mb-2">Groom</h4>
               <ReviewRow label="Name" value={form.groom_name} />
               <ReviewRow label="National ID" value={form.groom_national_id} />
               <ReviewRow label="Father" value={form.groom_father_name} />
@@ -509,7 +511,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
               <ReviewRow label="Phone" value={form.groom_phone} />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-primary mb-1">Bride</h4>
+              <h4 className="text-sm font-semibold text-primary mb-2">Bride</h4>
               <ReviewRow label="Name" value={form.bride_name} />
               <ReviewRow label="National ID" value={form.bride_national_id} />
               <ReviewRow label="Father" value={form.bride_father_name} />
@@ -517,7 +519,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
               <ReviewRow label="Phone" value={form.bride_phone} />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-primary mb-1">Marriage Details</h4>
+              <h4 className="text-sm font-semibold text-primary mb-2">Marriage Details</h4>
               <ReviewRow label="Date" value={form.preferred_date} />
               <ReviewRow label="Time" value={form.preferred_time} />
               <ReviewRow label="Masjid" value={form.preferred_masjid} />
@@ -526,7 +528,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
               <ReviewRow label="Venue" value={form.venue_type === 'custom' ? form.custom_venue_address : 'At Masjid'} />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-primary mb-1">Witnesses</h4>
+              <h4 className="text-sm font-semibold text-primary mb-2">Witnesses</h4>
               <ReviewRow label="Wali" value={`${form.wali_name}${form.wali_relation ? ` (${form.wali_relation})` : ''}`} />
               <ReviewRow label="Male Witness" value={form.male_witness_name} />
               <ReviewRow label="Female Witness 1" value={form.female_witness1_name} />
@@ -538,13 +540,13 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
 
       {/* Step 5: Required Documents & Payment */}
       {step === 5 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 px-4 sm:px-6">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <FileCheck className="h-5 w-5 text-primary" /> Required Documents & Payment
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-4 sm:space-y-5 px-4 sm:px-6">
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
@@ -554,11 +556,11 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {DOC_CONFIG.map(doc => (
                 <div
                   key={doc.key}
-                  className={`rounded-lg border p-3 transition-colors ${docFiles[doc.key] ? 'border-primary/50 bg-primary/5' : 'border-border'}`}
+                  className={`rounded-lg border p-3 sm:p-4 transition-colors ${docFiles[doc.key] ? 'border-primary/50 bg-primary/5' : 'border-border'}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -599,7 +601,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
                           setDocPreviews(p => ({ ...p, [doc.key]: URL.createObjectURL(file) }));
                         }}
                       />
-                      <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary cursor-pointer hover:bg-primary/20 transition-colors">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-medium text-primary cursor-pointer hover:bg-primary/20 transition-colors">
                         <Upload className="h-3 w-3" />
                         {docFiles[doc.key] ? 'Replace' : 'Upload'}
                       </span>
@@ -629,7 +631,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
                     key={pm.value}
                     type="button"
                     onClick={() => setPaymentMethod(pm.value)}
-                    className={`flex items-center gap-2 rounded-lg border-2 p-3 text-left transition-all ${
+                    className={`flex items-center gap-2 rounded-lg border-2 p-2.5 sm:p-3 text-left transition-all ${
                       paymentMethod === pm.value
                         ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                         : 'border-border hover:border-muted-foreground/30'
@@ -638,7 +640,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
                     <div className={`rounded-full p-1.5 ${pm.color}`}>
                       <pm.icon className="h-4 w-4" />
                     </div>
-                    <span className="text-sm font-medium text-foreground">{pm.label}</span>
+                    <span className="text-xs sm:text-sm font-medium text-foreground">{pm.label}</span>
                   </button>
                 ))}
               </div>
@@ -646,7 +648,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
 
             {/* Mobile Money Phone Number */}
             {(paymentMethod === 'mtn_momo' || paymentMethod === 'airtel_money') && (
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 sm:space-y-2">
                 <Label className="text-sm font-medium">
                   {paymentMethod === 'mtn_momo' ? 'MTN' : 'Airtel'} Phone Number <span className="text-destructive">*</span>
                 </Label>
@@ -655,6 +657,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
                   value={paymentPhone}
                   onChange={(e) => setPaymentPhone(e.target.value)}
                   placeholder={paymentMethod === 'mtn_momo' ? '078XXXXXXX' : '073XXXXXXX'}
+                  className="h-11 sm:h-10"
                 />
                 <p className="text-xs text-muted-foreground">
                   You will receive a USSD prompt on this number to confirm payment.
@@ -671,7 +674,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
               </div>
             )}
 
-            <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">
+            <div className="rounded-lg border border-border bg-muted/50 p-3 sm:p-4 space-y-2">
               <h4 className="text-sm font-semibold text-foreground">Payment Summary</h4>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Service Tier</span>
@@ -683,7 +686,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
               </div>
               <div className="border-t border-border pt-2 flex justify-between text-sm">
                 <span className="font-semibold text-foreground">Total Amount</span>
-                <span className="font-bold text-primary text-lg">{form.service_tier === 'premium' ? '100,000' : '50,000'} RWF</span>
+                <span className="font-bold text-primary text-base sm:text-lg">{form.service_tier === 'premium' ? '100,000' : '50,000'} RWF</span>
               </div>
             </div>
 
@@ -702,14 +705,27 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
       )}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-2">
-        <Button variant="outline" onClick={step === 0 ? onCancel : prev}>
+      <div className="flex items-center justify-between pt-2 sm:pt-4 gap-3">
+        <Button 
+          variant="outline" 
+          onClick={step === 0 ? onCancel : prev}
+          className="h-11 sm:h-10 px-4 sm:px-3"
+        >
           <ChevronLeft className="mr-1 h-4 w-4" />{step === 0 ? 'Cancel' : 'Back'}
         </Button>
         {step < STEPS.length - 1 ? (
-          <Button onClick={next}>Next <ChevronRight className="ml-1 h-4 w-4" /></Button>
+          <Button 
+            onClick={next}
+            className="h-11 sm:h-10 px-4 sm:px-3"
+          >
+            Next <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
         ) : (
-          <Button onClick={submit} disabled={submitting || !canSubmit}>
+          <Button 
+            onClick={submit} 
+            disabled={submitting || !canSubmit}
+            className="h-11 sm:h-10 px-4 sm:px-3"
+          >
             {submitting ? (
               <>
                 <Loader2 className="mr-1 h-4 w-4 animate-spin" />
