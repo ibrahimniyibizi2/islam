@@ -39,6 +39,7 @@ import EventManagerDashboard from "./pages/dashboards/EventManagerDashboard";
 import BoardMemberDashboard from "./pages/dashboards/BoardMemberDashboard";
 import GeneralStaffDashboard from "./pages/dashboards/GeneralStaffDashboard";
 import PublicUserDashboard from "./pages/dashboards/PublicUserDashboard";
+import TrackApplication from "./pages/TrackApplication";
 import TestNotificationsPage from "./pages/dashboards/TestNotificationsPage";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const App = () => (
             <Route path="/dashboard/general-staff/*" element={<ProtectedRoute allowedRoles={['general_staff']}><GeneralStaffDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/user/*" element={<ProtectedRoute allowedRoles={['public_user']}><PublicUserDashboard /></ProtectedRoute>} />
             <Route path="/test-notifications" element={<TestNotificationsPage />} />
+            <Route path="/track/:applicationId" element={<TrackApplication />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
