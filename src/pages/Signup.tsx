@@ -92,9 +92,15 @@ export default function Signup() {
       {/* Overlay for better readability */}
       <div className="absolute inset-0 bg-black/50" />
       <Card className="w-full max-w-md shadow-primary relative z-10 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="text-center relative">
-          <Link to="/" className="absolute left-4 top-4 p-2 rounded-full hover:bg-emerald-50 transition-colors text-emerald-600">
-            <Home className="w-5 h-5" />
+        <CardHeader className="text-center relative pt-14">
+          <Link to="/">
+            <Button
+              variant="ghost"
+              className="absolute left-2 top-2 flex items-center gap-2 text-emerald-600 hover:bg-emerald-50"
+            >
+              <Home className="w-4 h-4" />
+              Home
+            </Button>
           </Link>
           <CardTitle className="text-2xl text-emerald-900">Create Account</CardTitle>
           <CardDescription className="text-emerald-700">Join IslamRwanda</CardDescription>
