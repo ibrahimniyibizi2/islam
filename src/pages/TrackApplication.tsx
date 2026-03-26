@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, ArrowLeft, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { FileText, ArrowLeft, Clock, CheckCircle, XCircle, Loader2, Download, Printer, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -92,6 +92,32 @@ export default function TrackApplicationPage() {
       { date: '2024-03-18T14:20:00Z', status: 'Processing', description: 'Application under review by the committee' }
     ]
   });
+
+  const handleDownload = () => {
+    toast({ title: 'Download Started', description: 'Your application document is being prepared.' });
+    // TODO: Implement actual PDF download
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Application Status',
+          text: `Track my application ${applicationId}`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log('Share cancelled');
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({ title: 'Link Copied', description: 'Share link copied to clipboard.' });
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -188,6 +214,34 @@ export default function TrackApplicationPage() {
                   <p className="font-medium text-gray-900">{value}</p>
                 </div>
               ))}
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6 pt-6 border-t">
+              <Button
+                onClick={handleDownload}
+                variant="outline"
+                className="flex-1"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+              <Button
+                onClick={handlePrint}
+                variant="outline"
+                className="flex-1"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Print
+              </Button>
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                className="flex-1"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
             </div>
           </CardContent>
         </Card>
