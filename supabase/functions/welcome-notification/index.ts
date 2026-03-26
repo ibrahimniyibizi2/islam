@@ -34,12 +34,12 @@ function buildWelcomeEmailHTML(name: string) {
   <div class="container">
     <div class="header">
       <h1>🤗 Welcome Back!</h1>
-      <p>Rwanda Islamic Hub - Islamic Services Platform</p>
+      <p>Rwanda Islamic  - Islamic Services Platform</p>
     </div>
     <div class="body">
       <p class="greeting">Assalamu Alaikum ${name || 'Brother/Sister'},</p>
       
-      <p>Welcome back to <strong>Rwanda Islamic Hub</strong>! We're delighted to see you again.</p>
+      <p>Welcome back to <strong>Rwanda Islamic</strong>! We're delighted to see you again.</p>
       
       <div class="message">
         <p><strong>You've successfully logged in!</strong></p>
@@ -64,7 +64,7 @@ function buildWelcomeEmailHTML(name: string) {
       <p>May Allah bless you and grant you success in this life and the hereafter. 🤲</p>
     </div>
     <div class="footer">
-      <p>Rwanda Islamic Hub — Islamic Services Platform</p>
+      <p>Rwanda Islamic  — Islamic Services Platform</p>
       <p>This is an automated message. Please do not reply.</p>
     </div>
   </div>
@@ -93,7 +93,7 @@ async function sendEmailViaGmail(to: string, subject: string, html: string, smtp
 
   console.log(`Sending welcome email to: ${to}`);
   const info = await transporter.sendMail({
-    from: `"Rwanda Islamic Hub" <${smtpEmail}>`,
+    from: `"Rwanda Islamic" <${smtpEmail}>`,
     to: to,
     subject: subject,
     html: html,
@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
     if (email && SMTP_EMAIL && SMTP_APP_PASSWORD) {
       await sendEmailViaGmail(
         email,
-        "🤗 Welcome Back to Rwanda Islamic Hub!",
+        "🤗 Welcome Back to Rwanda Islamic!",
         buildWelcomeEmailHTML(name),
         SMTP_EMAIL,
         SMTP_APP_PASSWORD
@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
 
     // Send SMS if phone provided
     if (phone && PINDO_API_TOKEN) {
-      const smsMessage = `Assalamu Alaikum ${name || 'Brother/Sister'}! Welcome back to Rwanda Islamic Hub. You've successfully logged in. May Allah bless you! 🤲`;
+      const smsMessage = `Assalamu Alaikum ${name || 'Brother/Sister'}! Welcome back to Rwanda Islamic. You've successfully logged in. May Allah bless you! 🤲`;
       await sendSMSWithPindo(phone, smsMessage, PINDO_API_TOKEN);
     }
 
