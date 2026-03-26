@@ -85,7 +85,7 @@ const QuickAccess = () => {
  
   const IconComponent = selectedService?.icon || FileText;
   return (
-    <section className="py-16 md:py-20 bg-gray-50">
+    <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -145,19 +145,19 @@ const QuickAccess = () => {
         {/* Track Applications CTA */}
         <div 
           onClick={() => navigate(user ? '/dashboard/user/track' : '/login')}
-          className="group relative bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300"
+          className="group relative bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-4 sm:p-6 cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300"
         >
           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-white/20 backdrop-blur-sm rounded-xl">
-                <ClipboardList className="w-8 h-8 text-white" />
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4 bg-white/20 backdrop-blur-sm rounded-xl shrink-0">
+                <ClipboardList className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-0.5 sm:mb-1">
                   Track Your Applications
                 </h3>
-                <p className="text-emerald-100">
+                <p className="text-sm text-emerald-100 leading-snug">
                   {user 
                     ? 'View and manage all your submitted applications in one place'
                     : 'Sign in to track your application status and history'
@@ -165,30 +165,30 @@ const QuickAccess = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-white group-hover:translate-x-2 transition-transform">
-              <span className="font-medium hidden sm:inline">{user ? 'Go to Dashboard' : 'Sign In'}</span>
-              <ArrowRight className="w-6 h-6" />
+            <div className="flex items-center gap-2 text-white group-hover:translate-x-2 transition-transform self-end sm:self-auto">
+              <span className="font-medium text-sm hidden sm:inline">{user ? 'Go to Dashboard' : 'Sign In'}</span>
+              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           </div>
         </div>
  
         {/* Service Detail Modal */}
         <Dialog open={isModalOpen} onOpenChange={handleCloseModal}>
-          <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl">
+          <DialogContent className="max-w-2xl w-[95%] sm:w-full p-0 overflow-hidden rounded-2xl max-h-[90vh] overflow-y-auto">
             {selectedService && (
               <>
                 {/* Header */}
-                <div className={`p-6 bg-gradient-to-r ${selectedService.color}`}>
+                <div className={`p-4 sm:p-6 bg-gradient-to-r ${selectedService.color}`}>
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                        <IconComponent className="w-8 h-8 text-white" />
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="p-2.5 sm:p-3 bg-white/20 backdrop-blur-sm rounded-xl shrink-0">
+                        <IconComponent className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                       </div>
                       <div>
-                        <DialogTitle className="text-2xl font-bold text-white">
+                        <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
                           {selectedService.title}
                         </DialogTitle>
-                        <Badge className="mt-1 bg-white/20 text-white border-0">
+                        <Badge className="mt-1 bg-white/20 text-white border-0 text-xs sm:text-sm">
                           Popular Service
                         </Badge>
                       </div>
@@ -197,25 +197,25 @@ const QuickAccess = () => {
                 </div>
  
                 {/* Content */}
-                <div className="p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                   {/* About Section */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                       About this Service
                     </h3>
-                    <DialogDescription className="text-base text-gray-600 leading-relaxed">
+                    <DialogDescription className="text-sm sm:text-base text-gray-600 leading-relaxed">
                       {selectedService.fullDescription}
                     </DialogDescription>
                   </div>
  
                   {/* Requirements */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">
                       Required Documents
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedService.requirements.map((req, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                        <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm font-medium">
                           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
                           {req}
                         </span>
@@ -224,48 +224,48 @@ const QuickAccess = () => {
                   </div>
  
                   {/* Details Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4">
                       <div className="flex items-center gap-2 text-gray-600 mb-1">
                         <Clock className="w-4 h-4" />
-                        <span className="text-sm font-medium">Processing</span>
+                        <span className="text-xs sm:text-sm font-medium">Processing</span>
                       </div>
-                      <p className="text-lg font-bold text-gray-900">
+                      <p className="text-base sm:text-lg font-bold text-gray-900">
                         {selectedService.processingTime}
                       </p>
                     </div>
  
-                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4">
+                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-3 sm:p-4">
                       <div className="flex items-center gap-2 text-emerald-600 mb-1">
                         <DollarSign className="w-4 h-4" />
-                        <span className="text-sm font-medium">Price</span>
+                        <span className="text-xs sm:text-sm font-medium">Price</span>
                       </div>
-                      <p className="text-lg font-bold text-emerald-700">
+                      <p className="text-base sm:text-lg font-bold text-emerald-700">
                         {selectedService.price}
                       </p>
                     </div>
  
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4">
                       <div className="flex items-center gap-2 text-blue-600 mb-1">
                         <Users className="w-4 h-4" />
-                        <span className="text-sm font-medium">Provider</span>
+                        <span className="text-xs sm:text-sm font-medium">Provider</span>
                       </div>
-                      <p className="text-sm font-bold text-blue-700">
+                      <p className="text-sm sm:text-base font-bold text-blue-700">
                         {selectedService.providedBy}
                       </p>
                     </div>
                   </div>
  
                   {/* Apply Button */}
-                  <div className="pt-4 border-t border-gray-100">
+                  <div className="pt-3 sm:pt-4 border-t border-gray-100">
                     <Button 
-                      className={`w-full h-12 bg-gradient-to-r ${selectedService.color} hover:opacity-90 text-white font-semibold text-lg rounded-xl`}
+                      className={`w-full h-11 sm:h-12 bg-gradient-to-r ${selectedService.color} hover:opacity-90 text-white font-semibold text-base sm:text-lg rounded-xl`}
                       onClick={handleApply}
                     >
                       Apply Now
-                      <ArrowRight className="w-5 h-5 ml-2" />
+                      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                     </Button>
-                    <p className="text-center text-sm text-gray-500 mt-2">
+                    <p className="text-center text-xs sm:text-sm text-gray-500 mt-2">
                       Click to start your application process
                     </p>
                   </div>

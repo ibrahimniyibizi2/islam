@@ -92,16 +92,16 @@ const Header = () => {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+          {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden pt-4 pb-2 border-t border-gray-100 mt-3">
-            <div className="flex flex-col gap-2">
+          <div className="md:hidden pt-4 pb-2 border-t border-gray-100 mt-3 bg-white rounded-lg shadow-lg mx-2">
+            <div className="flex flex-col gap-1 p-2">
               <Link
                 to="/contact-support"
-                className="flex items-center gap-2 py-2 text-gray-600 hover:text-emerald-600 transition-colors text-sm font-medium"
+                className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors text-sm font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <HelpCircle className="w-4 h-4" />
+                <HelpCircle className="w-5 h-5" />
                 Support
               </Link>
               
@@ -109,20 +109,20 @@ const Header = () => {
                 <>
                   <Link
                     to="/dashboard/user"
-                    className="flex items-center gap-2 py-2 text-gray-600 hover:text-emerald-600 transition-colors text-sm font-medium"
+                    className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors text-sm font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <User className="w-4 h-4" />
+                    <User className="w-5 h-5" />
                     Dashboard
                   </Link>
                   <button
-                    className="flex items-center gap-2 py-2 text-gray-600 hover:text-emerald-600 transition-colors text-sm font-medium text-left"
+                    className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors text-sm font-medium text-left w-full"
                     onClick={() => {
                       signOut();
                       setMobileMenuOpen(false);
                     }}
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-5 h-5" />
                     Sign Out
                   </button>
                 </>
@@ -130,29 +130,33 @@ const Header = () => {
                 <>
                   <Link
                     to="/signup"
-                    className="py-2 text-gray-600 hover:text-emerald-600 transition-colors text-sm font-medium"
+                    className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors text-sm font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
+                    <User className="w-5 h-5" />
                     Sign Up
                   </Link>
                   <Link
                     to="/login"
-                    className="py-2 text-gray-600 hover:text-emerald-600 transition-colors text-sm font-medium"
+                    className="flex items-center gap-3 px-3 py-3 text-emerald-600 bg-emerald-50 rounded-lg transition-colors text-sm font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
+                    <LogOut className="w-5 h-5 rotate-180" />
                     Log In
                   </Link>
                 </>
               )}
               
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center justify-center gap-1 mt-2 text-gray-600 border-gray-300"
-              >
-                <Globe className="w-4 h-4" />
-                English
-              </Button>
+              <div className="border-t border-gray-100 mt-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center justify-center gap-2 w-full text-gray-600 border-gray-300"
+                >
+                  <Globe className="w-4 h-4" />
+                  English
+                </Button>
+              </div>
             </div>
           </div>
         )}
