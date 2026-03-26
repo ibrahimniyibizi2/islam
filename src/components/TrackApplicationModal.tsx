@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
+
 interface TrackApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,12 +33,12 @@ export function TrackApplicationModal({ isOpen, onClose }: TrackApplicationModal
     setLoading(true);
     
     try {
-      // Call API to send OTP
-      const response = await fetch('/api/send-otp', {
+      // Call Supabase Edge Function to send OTP
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          value: value.trim(),
+          identifier: value.trim(),
           type: isPhone ? 'phone' : 'code'
         }),
       });
@@ -69,10 +71,11 @@ export function TrackApplicationModal({ isOpen, onClose }: TrackApplicationModal
     setLoading(true);
     
     try {
-      const response = await fetch('/api/verify-otp', {
+      // Call Supabase Edge Function to verify OTP
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: value.trim(), otp }),
+        body: JSON.stringify({ identifier: value.trim(), otp }),
       });
 
       const data = await response.json();
