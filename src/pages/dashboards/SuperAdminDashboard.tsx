@@ -6248,7 +6248,7 @@ function AbandonedApplicationsPage() {
           </p>
         </div>
         <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
-          <p className="text-sm text-orange-600 font-medium">Stale (>30 days)</p>
+          <p className="text-sm text-orange-600 font-medium">Stale (&gt;30 days)</p>
           <p className="text-3xl font-bold text-orange-700 mt-1">
             {loading ? '...' : abandonedApps.filter(a => a.reason?.includes('30 days')).length}
           </p>
