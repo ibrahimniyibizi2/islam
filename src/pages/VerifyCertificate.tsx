@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, Share2, Download, Eye, Printer } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 type VerificationState =
   | { status: 'loading' }
@@ -30,8 +34,12 @@ export default function VerifyCertificate() {
   const [searchParams] = useSearchParams();
   const appId = searchParams.get('app');
   const certificateNumber = useMemo(() => (certificate_number || '').trim(), [certificate_number]);
+  const { toast } = useToast();
 
   const [state, setState] = useState<VerificationState>({ status: 'loading' });
+  const [showPreview, setShowPreview] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const certificateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +118,120 @@ export default function VerifyCertificate() {
     };
   }, [certificateNumber, appId]);
 
+  // Handle share certificate
+  const handleShare = async () => {
+    if (state.status !== 'found') return;
+    
+    const shareUrl = `${window.location.origin}/verify-certificate/${state.record.certificate_number}?app=${state.record.id}`;
+    const shareData = {
+      title: 'Nikah Certificate Verification',
+      text: `Verify Nikah Certificate for ${state.record.groom_name} & ${state.record.bride_name}`,
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: 'Link Copied!',
+          description: 'Certificate verification link copied to clipboard.',
+        });
+      }
+    } catch (err) {
+      // User cancelled or error
+      console.log('Share cancelled');
+    }
+  };
+
+  // Handle download PDF
+  const handleDownloadPDF = async () => {
+    if (state.status !== 'found') return;
+    
+    // If certificate_url exists, download it
+    if (state.record.certificate_url) {
+      const link = document.createElement('a');
+      link.href = state.record.certificate_url;
+      link.download = `Nikah_Certificate_${state.record.certificate_number}.pdf`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: 'Download Started',
+        description: 'Your certificate is being downloaded.',
+      });
+    } else {
+      // Generate a simple PDF using window.print
+      window.print();
+    }
+  };
+
+  // Format date helper
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Generate PDF from certificate preview
+  const generatePDF = async () => {
+    if (state.status !== 'found' || !certificateRef.current) return;
+    
+    setDownloading(true);
+    try {
+      const element = certificateRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const imgWidth = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const yPos = (210 - imgHeight) / 2;
+      
+      pdf.addImage(imgData, 'PNG', 0, yPos, imgWidth, imgHeight);
+      pdf.save(`Nikah_Certificate_${state.record.certificate_number}.pdf`);
+      
+      toast({
+        title: 'Download Complete',
+        description: `Certificate downloaded successfully.`,
+      });
+    } catch (err: any) {
+      console.error('PDF generation error:', err);
+      toast({
+        title: 'Download Failed',
+        description: err.message || 'Failed to generate PDF. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // Handle print certificate
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto w-full max-w-2xl space-y-6">
@@ -174,7 +296,7 @@ export default function VerifyCertificate() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="rounded-md border border-border p-3">
                     <p className="text-xs text-muted-foreground">Issued At</p>
-                    <p className="text-sm text-foreground">{state.record.certificate_issued_at || '-'}</p>
+                    <p className="text-sm text-foreground">{formatDate(state.record.certificate_issued_at)}</p>
                   </div>
                   <div className="rounded-md border border-border p-3">
                     <p className="text-xs text-muted-foreground">Masjid</p>
@@ -182,7 +304,7 @@ export default function VerifyCertificate() {
                   </div>
                   <div className="rounded-md border border-border p-3">
                     <p className="text-xs text-muted-foreground">Confirmed Date</p>
-                    <p className="text-sm text-foreground">{state.record.confirmed_date || '-'}</p>
+                    <p className="text-sm text-foreground">{formatDate(state.record.confirmed_date)}</p>
                   </div>
                   <div className="rounded-md border border-border p-3">
                     <p className="text-xs text-muted-foreground">Location</p>
@@ -190,12 +312,118 @@ export default function VerifyCertificate() {
                   </div>
                 </div>
 
-                {state.record.certificate_url && (
-                  <div>
-                    <Button asChild variant="outline">
-                      <a href={state.record.certificate_url} target="_blank" rel="noreferrer">
-                        View Certificate
-                      </a>
+                {state.status === 'found' && state.isValid && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <Dialog open={showPreview} onOpenChange={setShowPreview}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline">
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview Certificate
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            Certificate Preview
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4">
+                          {/* Certificate Preview */}
+                          <div 
+                            ref={certificateRef}
+                            className="bg-gradient-to-br from-amber-50 via-white to-amber-50 border-8 border-double border-amber-600 p-8 relative"
+                            style={{ aspectRatio: '1.414/1' }}
+                          >
+                            {/* Header */}
+                            <div className="text-center mb-6">
+                              <h1 className="text-2xl font-bold text-green-800 tracking-wide">REPUBLIC OF RWANDA</h1>
+                              <h2 className="text-xl font-bold text-amber-600">RWANDA ISLAMIC COMMUNITY</h2>
+                              <p className="text-sm text-amber-600 uppercase tracking-widest mt-1 font-semibold">Official Marriage Certificate</p>
+                              <div className="w-32 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mt-2" />
+                            </div>
+
+                            {/* Certificate Number */}
+                            <div className="text-center mb-6">
+                              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100 via-yellow-100 to-amber-100 border-2 border-amber-400 px-6 py-2 rounded-full shadow-lg">
+                                <span className="text-amber-800 font-semibold text-sm">CERTIFICATE NO:</span>
+                                <span className="font-bold text-purple-700">{state.record.certificate_number}</span>
+                              </div>
+                            </div>
+
+                            {/* Certification Text */}
+                            <div className="text-center mb-4">
+                              <p className="text-lg text-gray-700 italic">This is to certify that the Islamic Marriage (Nikah) was solemnized between:</p>
+                            </div>
+
+                            {/* Couple Names */}
+                            <div className="text-center space-y-2 mb-6">
+                              <p className="text-2xl font-bold text-green-800" style={{ fontFamily: 'Georgia, serif' }}>
+                                {state.record.groom_name}
+                              </p>
+                              <p className="text-xl italic text-amber-600">~ and ~</p>
+                              <p className="text-2xl font-bold text-green-800" style={{ fontFamily: 'Georgia, serif' }}>
+                                {state.record.bride_name}
+                              </p>
+                            </div>
+
+                            {/* Date and Place */}
+                            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto mb-6 bg-amber-50/70 p-4 rounded-lg border border-amber-200">
+                              <div>
+                                <span className="text-gray-500 text-xs font-medium">Date of Nikah:</span>
+                                <p className="font-semibold text-gray-800">{formatDate(state.record.confirmed_date)}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 text-xs font-medium">Place of Nikah:</span>
+                                <p className="font-semibold text-gray-800">{state.record.confirmed_location || state.record.preferred_masjid || '-'}</p>
+                              </div>
+                            </div>
+
+                            {/* Official Stamp */}
+                            <div className="flex justify-center my-6">
+                              <div className="w-20 h-20 border-4 border-red-600 rounded-full flex flex-col items-center justify-center bg-white">
+                                <span className="text-xs text-red-600 font-bold">OFFICIAL</span>
+                                <span className="text-lg text-red-600">★</span>
+                              </div>
+                            </div>
+
+                            {/* Issued Info */}
+                            <div className="text-center text-sm text-gray-500 mt-4">
+                              <p>Issued on: {formatDate(state.record.certificate_issued_at)}</p>
+                              <p className="mt-1">Verify at: {window.location.origin}/verify-certificate/{state.record.certificate_number}</p>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex gap-3 mt-6 justify-center">
+                            <Button onClick={generatePDF} disabled={downloading}>
+                              {downloading ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              ) : (
+                                <Download className="h-4 w-4 mr-2" />
+                              )}
+                              Download PDF
+                            </Button>
+                            <Button variant="outline" onClick={handlePrint}>
+                              <Printer className="h-4 w-4 mr-2" />
+                              Print
+                            </Button>
+                            <Button variant="outline" onClick={handleShare}>
+                              <Share2 className="h-4 w-4 mr-2" />
+                              Share
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Button variant="outline" onClick={() => setShowPreview(true)}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download PDF
+                    </Button>
+                    <Button variant="outline" onClick={handleShare}>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share
                     </Button>
                   </div>
                 )}

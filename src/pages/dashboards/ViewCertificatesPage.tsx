@@ -81,7 +81,8 @@ export default function ViewCertificatesPage() {
         .from('nikah_applications')
         .select('*')
         .not('certificate_number', 'is', null)
-        .order('certificate_issued_at', { ascending: false });
+        .order('certificate_issued_at', { ascending: false })
+        .limit(10000);
 
       if (error) throw error;
 
