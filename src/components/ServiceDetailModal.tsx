@@ -1,4 +1,5 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Clock, DollarSign, Users, ArrowRight } from "lucide-react";
 
@@ -25,6 +26,10 @@ const ServiceDetailModal = ({ isOpen, onClose, onApply, service }: ServiceDetail
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl w-[95%] sm:w-full p-0 overflow-hidden rounded-2xl max-h-[90vh] overflow-y-auto">
+        <VisuallyHidden>
+          <DialogTitle>{service.title}</DialogTitle>
+          <DialogDescription>{service.fullDescription}</DialogDescription>
+        </VisuallyHidden>
         {/* Header */}
         <div className={`p-4 sm:p-6 ${service.color.includes('emerald') ? 'bg-emerald-50' : service.color.includes('pink') ? 'bg-pink-50' : service.color.includes('gray') ? 'bg-gray-50' : service.color.includes('blue') ? 'bg-blue-50' : service.color.includes('green') ? 'bg-green-50' : service.color.includes('orange') ? 'bg-orange-50' : service.color.includes('purple') ? 'bg-purple-50' : service.color.includes('teal') ? 'bg-teal-50' : 'bg-indigo-50'}`}>
           <div className="flex items-start justify-between">

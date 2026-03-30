@@ -108,20 +108,34 @@ export function ViewAllApplicationsPage() {
             }
           } else if (fullShahadaApps && Array.isArray(fullShahadaApps)) {
             fullShahadaApps.forEach((app: any) => {
+              // Handle both old field names (full_name) and new field names (first_name, last_name)
+              let applicantName = 'Unknown Applicant';
+              if (app.first_name && app.last_name) {
+                applicantName = `${app.first_name} ${app.last_name}`;
+              } else if (app.full_name) {
+                applicantName = app.full_name;
+              } else if (app.first_name) {
+                applicantName = app.first_name;
+              } else if (app.last_name) {
+                applicantName = app.last_name;
+              }
+              
+              // Handle both old (previous_religion) and new (current_religion) field names
+              const currentReligion = app.current_religion || app.previous_religion || 'Unknown';
+              
               applications.push({
                 id: app.id,
                 type: 'shahada',
-                applicantName: app.first_name && app.last_name ? `${app.first_name} ${app.last_name}` : 
-                               app.applicant_name || 'Unknown Applicant',
+                applicantName: applicantName,
                 applicantEmail: app.email || app.applicant_email || 'No email',
                 applicantPhone: app.phone || app.applicant_phone || null,
                 status: app.status,
                 submittedAt: app.created_at,
                 lastUpdated: app.updated_at,
                 details: {
-                  currentReligion: app.current_religion,
+                  currentReligion: currentReligion,
                   desiredReligion: 'Islam',
-                  reason: app.conversion_reason,
+                  reason: app.conversion_reason || app.declaration_text,
                   references: [app.witness1_name, app.witness2_name].filter(Boolean),
                   ...app // Include all other fields for debugging
                 }
@@ -364,7 +378,21 @@ export function ViewAllApplicationsPage() {
       }
 
       if (error) {
-        // Handle status constraint violations specifically
+        // Log detailed error for debugging
+        console.error('Shahada status update error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          applicationType: application.type,
+          newStatus: newStatus,
+          tableName: tableName
+        });
+        // Handle RLS policy violation (code 42501)
+        if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('new row violates row-level security policy')) {
+          throw new Error(`Permission denied: You don't have admin rights to update ${application.type} applications. Please verify your role is set to super_admin, masjid_admin, imam, or mufti in the profiles table.`);
+        }
+
         if (error.code === '23514' && error.message.includes('status_check')) {
           console.log(`Status '${newStatus}' not allowed for ${application.type}, trying alternative...`);
           

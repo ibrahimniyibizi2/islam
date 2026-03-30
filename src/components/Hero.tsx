@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowRight, Sparkles } from "lucide-react";
+import { Search, ArrowRight, Sparkles, HeartHandshake, Flower2, GraduationCap, Landmark } from "lucide-react";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -17,10 +17,10 @@ const Hero = () => {
   };
 
   const quickLinks = [
-    { label: 'Nikah', icon: '💍', color: 'bg-pink-100 text-pink-700' },
-    { label: 'Funeral', icon: '🕌', color: 'bg-gray-100 text-gray-700' },
-    { label: 'Education', icon: '📚', color: 'bg-blue-100 text-blue-700' },
-    { label: 'Mosque', icon: '🕋', color: 'bg-emerald-100 text-emerald-700' },
+    { label: 'Nikah', icon: HeartHandshake, color: 'bg-pink-100 text-pink-700' },
+    { label: 'Funeral', icon: Flower2, color: 'bg-gray-100 text-gray-700' },
+    { label: 'Education', icon: GraduationCap, color: 'bg-blue-100 text-blue-700' },
+    { label: 'Mosque', icon: Landmark, color: 'bg-emerald-100 text-emerald-700' },
   ];
 
   return (
@@ -86,19 +86,22 @@ const Hero = () => {
 
           {/* Quick Links */}
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 px-2">
-            {quickLinks.map((link) => (
-              <button
-                key={link.label}
-                onClick={() => {
-                  setServiceQuery(link.label);
-                  navigate(`/search?q=${link.label}`);
-                }}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full ${link.color} hover:scale-105 transition-all duration-200 font-medium text-xs sm:text-sm`}
-              >
-                <span>{link.icon}</span>
-                <span className="whitespace-nowrap">{link.label}</span>
-              </button>
-            ))}
+            {quickLinks.map((link) => {
+              const IconComponent = link.icon;
+              return (
+                <button
+                  key={link.label}
+                  onClick={() => {
+                    setServiceQuery(link.label);
+                    navigate(`/search?q=${link.label}`);
+                  }}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full ${link.color} hover:scale-105 transition-all duration-200 font-medium text-xs sm:text-sm`}
+                >
+                  <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="whitespace-nowrap">{link.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

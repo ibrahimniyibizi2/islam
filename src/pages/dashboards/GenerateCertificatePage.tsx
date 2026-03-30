@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Search, FileCheck, Printer, Award, QrCode, Stamp, UserCircle, Shield, Check, Lock, Fingerprint, Hash, Download, Mail } from 'lucide-react';
 import { QRCodeSVG as RealQRCodeSVG } from 'qrcode.react';
 import jsPDF from 'jspdf';
@@ -37,6 +38,38 @@ interface NikahApplication {
   groom_id_document_url?: string;
   bride_id_document_url?: string;
   hiv_test_url?: string;
+}
+
+interface ShahadaApplication {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  national_id: string | null;
+  date_of_birth: string | null;
+  previous_religion: string | null;
+  preferred_date: string | null;
+  address: string | null;
+  status: string;
+  created_at: string;
+  certificate_number?: string;
+  certificate_issued_at?: string;
+  witness1_name: string;
+  witness2_name: string;
+  declaration_text?: string;
+  // Additional optional fields from database
+  gender?: string;
+  nationality?: string;
+  city?: string;
+  district?: string;
+  conversion_reason?: string;
+  islamic_knowledge?: string;
+  witness1_phone?: string;
+  witness1_relationship?: string;
+  witness2_phone?: string;
+  witness2_relationship?: string;
+  additional_info?: string;
+  updated_at?: string;
 }
 
 interface CertificateTemplate {
@@ -674,8 +707,11 @@ export default function GenerateCertificatePage() {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [certificateType, setCertificateType] = useState<'nikah' | 'shahada'>('nikah');
   const [applications, setApplications] = useState<NikahApplication[]>([]);
+  const [shahadaApplications, setShahadaApplications] = useState<ShahadaApplication[]>([]);
   const [selectedApp, setSelectedApp] = useState<NikahApplication | null>(null);
+  const [selectedShahadaApp, setSelectedShahadaApp] = useState<ShahadaApplication | null>(null);
   const [generating, setGenerating] = useState(false);
   const [certificateData, setCertificateData] = useState({
     imamName: '',
@@ -686,7 +722,13 @@ export default function GenerateCertificatePage() {
     registrarTitle: role ? role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Chief Registrar',
     confirmedDate: '',
     confirmedLocation: '',
-    muftiName: 'Sheikh Sindayigaya Musa',
+    muftiName: 'Sheikh Salim Hitimana',
+    // Shahada-specific fields
+    convertName: '',
+    previousReligion: '',
+    declarationDate: '',
+    declarationLocation: '',
+    islamicName: '',
   });
 
   const [template, setTemplate] = useState<CertificateTemplate | null>(null);
@@ -800,16 +842,32 @@ export default function GenerateCertificatePage() {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('nikah_applications')
-        .select('*')
-        .in('status', ['approved', 'completed'])
-        .or(`groom_name.ilike.%${searchQuery}%,bride_name.ilike.%${searchQuery}%`)
-        .order('created_at', { ascending: false })
-        .limit(10);
+      if (certificateType === 'nikah') {
+        const { data, error } = await supabase
+          .from('nikah_applications')
+          .select('*')
+          .in('status', ['approved', 'completed'])
+          .or(`groom_name.ilike.%${searchQuery}%,bride_name.ilike.%${searchQuery}%`)
+          .order('created_at', { ascending: false })
+          .limit(10);
 
-      if (error) throw error;
-      setApplications(data || []);
+        if (error) throw error;
+        setApplications(data || []);
+        setShahadaApplications([]);
+      } else {
+        // Search Shahada applications - database uses full_name
+        const { data, error } = await supabase
+          .from('shahada_applications')
+          .select('*')
+          .in('status', ['approved', 'completed'])
+          .filter('full_name', 'ilike', `%${searchQuery}%`)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+        setShahadaApplications(data || []);
+        setApplications([]);
+      }
     } catch (err: any) {
       toast({
         title: 'Error',
@@ -822,9 +880,9 @@ export default function GenerateCertificatePage() {
   };
 
   // Generate certificate number based on template format
-  const generateCertNumber = () => {
+  const generateCertNumber = (type: 'nikah' | 'shahada' = certificateType) => {
     const year = new Date().getFullYear();
-    const prefix = template?.certificate_prefix || 'RCN';
+    const prefix = type === 'shahada' ? 'RCS' : (template?.certificate_prefix || 'RCN');
     
     if (template?.certificate_format === 'UUID') {
       return `${prefix}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
@@ -836,57 +894,106 @@ export default function GenerateCertificatePage() {
 
   // Handle generate certificate
   const handleGenerate = async () => {
-    if (!selectedApp) return;
-    if (!certificateData.imamName || !certificateData.witness1Name || !certificateData.witness2Name || !certificateData.registrarName) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please fill in all required fields including registrar name.',
-        variant: 'destructive',
-      });
-      return;
-    }
+    if (certificateType === 'nikah') {
+      if (!selectedApp) return;
+      if (!certificateData.imamName || !certificateData.witness1Name || !certificateData.witness2Name || !certificateData.registrarName) {
+        toast({
+          title: 'Missing Information',
+          description: 'Please fill in all required fields including registrar name.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
-    setGenerating(true);
-    try {
-      const certNumber = certificateData.certificateNumber || generateCertNumber();
-      
-      // Update application with certificate details
-      const { error } = await supabase
-        .from('nikah_applications')
-        .update({
-          certificate_number: certNumber,
-          certificate_issued_at: new Date().toISOString(),
-          imam_name: certificateData.imamName,
-          witness_1_name: certificateData.witness1Name,
-          witness_2_name: certificateData.witness2Name,
-          confirmed_date: certificateData.confirmedDate || selectedApp?.preferred_date,
-          confirmed_location: certificateData.confirmedLocation || selectedApp?.preferred_masjid,
-          status: 'completed',
-        })
-        .eq('id', selectedApp.id);
+      setGenerating(true);
+      try {
+        const certNumber = certificateData.certificateNumber || generateCertNumber('nikah');
+        
+        // Update application with certificate details
+        const { error } = await supabase
+          .from('nikah_applications')
+          .update({
+            certificate_number: certNumber,
+            certificate_issued_at: new Date().toISOString(),
+            imam_name: certificateData.imamName,
+            witness_1_name: certificateData.witness1Name,
+            witness_2_name: certificateData.witness2Name,
+            confirmed_date: certificateData.confirmedDate || selectedApp?.preferred_date,
+            confirmed_location: certificateData.confirmedLocation || selectedApp?.preferred_masjid,
+            status: 'completed',
+          })
+          .eq('id', selectedApp.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setCertificateData(prev => ({ ...prev, certificateNumber: certNumber }));
-      
-      toast({
-        title: 'Certificate Generated',
-        description: `Certificate ${certNumber} has been created successfully.`,
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Error',
-        description: err.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setGenerating(false);
+        setCertificateData(prev => ({ ...prev, certificateNumber: certNumber }));
+        
+        toast({
+          title: 'Certificate Generated',
+          description: `Certificate ${certNumber} has been created successfully.`,
+        });
+      } catch (err: any) {
+        toast({
+          title: 'Error',
+          description: err.message,
+          variant: 'destructive',
+        });
+      } finally {
+        setGenerating(false);
+      }
+    } else {
+      // Shahada certificate generation
+      if (!selectedShahadaApp) return;
+      if (!certificateData.witness1Name || !certificateData.witness2Name || !certificateData.registrarName) {
+        toast({
+          title: 'Missing Information',
+          description: 'Please fill in all required fields including registrar name and witness names.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setGenerating(true);
+      try {
+        const certNumber = certificateData.certificateNumber || generateCertNumber('shahada');
+        
+        // Update Shahada application with certificate details
+        const { error } = await supabase
+          .from('shahada_applications')
+          .update({
+            certificate_number: certNumber,
+            certificate_issued_at: new Date().toISOString(),
+            witness1_name: certificateData.witness1Name,
+            witness2_name: certificateData.witness2Name,
+            status: 'completed',
+          })
+          .eq('id', selectedShahadaApp.id);
+
+        if (error) throw error;
+
+        setCertificateData(prev => ({ ...prev, certificateNumber: certNumber }));
+        
+        toast({
+          title: 'Shahada Certificate Generated',
+          description: `Certificate ${certNumber} has been created successfully.`,
+        });
+      } catch (err: any) {
+        toast({
+          title: 'Error',
+          description: err.message,
+          variant: 'destructive',
+        });
+      } finally {
+        setGenerating(false);
+      }
     }
   };
 
   // Handle download certificate as PDF - Fixed for proper fit
   const handleDownload = async () => {
-    if (!certificateData.certificateNumber || !selectedApp) return;
+    if (!certificateData.certificateNumber) return;
+    if (certificateType === 'nikah' && !selectedApp) return;
+    if (certificateType === 'shahada' && !selectedShahadaApp) return;
 
     setDownloadLoading(true);
 
@@ -987,8 +1094,9 @@ export default function GenerateCertificatePage() {
       // Add image to fill entire page without margins
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       
-      // Save the PDF
-      pdf.save(`nikah-certificate-${certificateData.certificateNumber}.pdf`);
+      // Save the PDF with appropriate filename
+      const certType = certificateType === 'shahada' ? 'shahada' : 'nikah';
+      pdf.save(`${certType}-certificate-${certificateData.certificateNumber}.pdf`);
       
       toast({
         title: 'Download Complete',
@@ -1019,14 +1127,21 @@ export default function GenerateCertificatePage() {
 
     setEmailSending(true);
     try {
+      const emailData = certificateType === 'nikah' ? {
+        certificateNumber: certificateData.certificateNumber,
+        email: emailAddress,
+        groomName: selectedApp?.groom_name,
+        brideName: selectedApp?.bride_name,
+        certificateHtml: document.getElementById('certificate-print-area')?.innerHTML,
+      } : {
+        certificateNumber: certificateData.certificateNumber,
+        email: emailAddress,
+        convertName: selectedShahadaApp?.full_name || '',
+        certificateHtml: document.getElementById('certificate-print-area')?.innerHTML,
+      };
+
       const { error } = await supabase.functions.invoke('send-certificate-email', {
-        body: {
-          certificateNumber: certificateData.certificateNumber,
-          email: emailAddress,
-          groomName: selectedApp?.groom_name,
-          brideName: selectedApp?.bride_name,
-          certificateHtml: document.getElementById('certificate-print-area')?.innerHTML,
-        },
+        body: emailData,
       });
 
       if (error) throw error;
@@ -1072,11 +1187,13 @@ export default function GenerateCertificatePage() {
       styleContent += style.innerHTML;
     });
 
+    const certTypeTitle = certificateType === 'nikah' ? 'Nikah Certificate' : 'Shahada Certificate';
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Nikah Certificate - ${certificateData.certificateNumber}</title>
+          <title>${certTypeTitle} - ${certificateData.certificateNumber}</title>
           <meta charset="UTF-8">
           <script src="https://cdn.tailwindcss.com"><\/script>
           <style>
@@ -1183,8 +1300,41 @@ export default function GenerateCertificatePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Generate Nikah Certificate</h2>
-          <p className="text-muted-foreground">Search and generate official marriage certificates</p>
+          <h2 className="text-2xl font-bold">Generate Certificate</h2>
+          <p className="text-muted-foreground">Search and generate official Islamic certificates</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Label className="text-sm font-medium">Certificate Type:</Label>
+          <Select
+            value={certificateType}
+            onValueChange={(value: 'nikah' | 'shahada') => {
+              setCertificateType(value);
+              setSelectedApp(null);
+              setSelectedShahadaApp(null);
+              setApplications([]);
+              setShahadaApplications([]);
+              setSearchQuery('');
+              setCertificateData(prev => ({
+                ...prev,
+                certificateNumber: '',
+                imamName: '',
+                witness1Name: '',
+                witness2Name: '',
+                convertName: '',
+                declarationDate: '',
+                declarationLocation: '',
+                previousReligion: '',
+              }));
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nikah">Nikah (Marriage)</SelectItem>
+              <SelectItem value="shahada">Shahada (Conversion)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -1193,13 +1343,13 @@ export default function GenerateCertificatePage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Search Approved Applications
+            Search Approved {certificateType === 'nikah' ? 'Nikah' : 'Shahada'} Applications
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-3">
             <Input
-              placeholder="Search by groom or bride name..."
+              placeholder={certificateType === 'nikah' ? "Search by groom or bride name..." : "Search by convert name..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && searchApplications()}
@@ -1211,8 +1361,8 @@ export default function GenerateCertificatePage() {
             </Button>
           </div>
 
-          {/* Results */}
-          {applications.length > 0 && (
+          {/* Results - Nikah */}
+          {certificateType === 'nikah' && applications.length > 0 && (
             <div className="mt-4 space-y-2">
               <p className="text-sm text-muted-foreground">Select an application:</p>
               {applications.map((app) => (
@@ -1225,7 +1375,7 @@ export default function GenerateCertificatePage() {
                       imamName: app.imam_name || app.preferred_imam || '',
                       witness1Name: app.male_witness_name || app.witness_1_name || '',
                       witness2Name: app.female_witness1_name || app.witness_2_name || '',
-                      certificateNumber: app.certificate_number || prev.certificateNumber || generateCertNumber(),
+                      certificateNumber: app.certificate_number || prev.certificateNumber || generateCertNumber('nikah'),
                     }));
                   }}
                   className={`w-full text-left p-3 rounded-lg border transition-colors ${
@@ -1281,16 +1431,69 @@ export default function GenerateCertificatePage() {
               ))}
             </div>
           )}
+
+          {/* Results - Shahada */}
+          {certificateType === 'shahada' && shahadaApplications.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <p className="text-sm text-muted-foreground">Select a Shahada application:</p>
+              {shahadaApplications.map((app) => (
+                <button
+                  key={app.id}
+                  onClick={() => {
+                    setSelectedShahadaApp(app);
+                    setCertificateData(prev => ({
+                      ...prev,
+                      convertName: app.full_name,
+                      witness1Name: app.witness1_name || '',
+                      witness2Name: app.witness2_name || '',
+                      previousReligion: app.previous_religion || '',
+                      declarationDate: app.preferred_date || '',
+                      declarationLocation: app.address || '',
+                      certificateNumber: app.certificate_number || prev.certificateNumber || generateCertNumber('shahada'),
+                    }));
+                  }}
+                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                    selectedShahadaApp?.id === app.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:bg-muted/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center border-2 border-white">
+                        <UserCircle className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{app.full_name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Date: {app.preferred_date || 'N/A'} | Previous: {app.previous_religion || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    {app.certificate_number ? (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        Cert: {app.certificate_number}
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                        No Certificate
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Certificate Form */}
-      {selectedApp && (
+      {/* Certificate Form - Nikah */}
+      {certificateType === 'nikah' && selectedApp && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileCheck className="h-5 w-5" />
-              Certificate Details
+              Nikah Certificate Details
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -1413,8 +1616,129 @@ export default function GenerateCertificatePage() {
         </Card>
       )}
 
-      {/* Enhanced Certificate Preview */}
-      {selectedApp && certificateData.certificateNumber && (
+      {/* Certificate Form - Shahada */}
+      {certificateType === 'shahada' && selectedShahadaApp && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileCheck className="h-5 w-5" />
+              Shahada Certificate Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label>Certificate Number</Label>
+                <Input
+                  value={certificateData.certificateNumber}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, certificateNumber: e.target.value }))}
+                  placeholder="Auto-generated if empty"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Registrar Name *</Label>
+                <Input
+                  value={certificateData.registrarName}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, registrarName: e.target.value }))}
+                  placeholder="Chief Registrar name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Registrar Title</Label>
+                <Input
+                  value={certificateData.registrarTitle}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, registrarTitle: e.target.value }))}
+                  placeholder="e.g. Chief Registrar"
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Witness 1 Name *</Label>
+                <Input
+                  value={certificateData.witness1Name}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, witness1Name: e.target.value }))}
+                  placeholder="First witness name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Witness 2 Name *</Label>
+                <Input
+                  value={certificateData.witness2Name}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, witness2Name: e.target.value }))}
+                  placeholder="Second witness name"
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Declaration Date</Label>
+                <Input
+                  type="date"
+                  value={certificateData.declarationDate}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, declarationDate: e.target.value }))}
+                  placeholder={selectedShahadaApp?.preferred_date || 'Select declaration date'}
+                />
+                <p className="text-xs text-muted-foreground">Defaults to: {selectedShahadaApp?.preferred_date || 'N/A'}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Declaration Location</Label>
+                <Input
+                  value={certificateData.declarationLocation}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, declarationLocation: e.target.value }))}
+                  placeholder={selectedShahadaApp?.address || 'Enter declaration location'}
+                />
+                <p className="text-xs text-muted-foreground">Defaults to: {selectedShahadaApp?.address || 'N/A'}</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="flex-1"
+              >
+                {generating ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Award className="h-4 w-4 mr-2" />
+                )}
+                {selectedShahadaApp.certificate_number ? 'Update Certificate' : 'Generate Certificate'}
+              </Button>
+              <Button variant="outline" onClick={handlePrint} disabled={!certificateData.certificateNumber}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+              <Button variant="outline" onClick={handleDownload} disabled={!certificateData.certificateNumber || downloadLoading}>
+                {downloadLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Download className="h-4 w-4 mr-2" />}
+                Download
+              </Button>
+            </div>
+
+            {/* Email Section */}
+            <div className="flex gap-3 pt-2">
+              <Input
+                type="email"
+                placeholder="Enter email address to send certificate..."
+                value={emailAddress}
+                onChange={(e) => setEmailAddress(e.target.value)}
+                className="flex-1"
+              />
+              <Button 
+                variant="outline" 
+                onClick={handleSendEmail} 
+                disabled={!certificateData.certificateNumber || !emailAddress || emailSending}
+              >
+                {emailSending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
+                Send Email
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Enhanced Certificate Preview - Nikah */}
+      {certificateType === 'nikah' && selectedApp && certificateData.certificateNumber && (
         <Card id="certificate-preview" className="print:shadow-none overflow-hidden">
           <CardContent className="p-0">
             <div 
@@ -1466,15 +1790,11 @@ export default function GenerateCertificatePage() {
                   <div className="flex items-center justify-between mb-1">
                     {/* Left - Logo */}
                     <div className="w-28 flex-shrink-0">
-                      <svg viewBox="0 0 219.27 167.01" className="w-24 h-auto">
-                        <path fill="#26416f" d="M190.95,26.79c20.59,16.71,29.89,50.35,19.6,75.26-8.41,20.36-29.87,42.9-53.96,35.6-38.01-11.52-24.62-92.71,21.6-81.6,3.96.95,15.51,7.51,15.82,11.82.11,1.55-6.93,8.62-8.14,10.48-17.92-20.74-40.91.93-39.23,23.48.91,12.24,9.9,23.96,23.14,22.46,21.89-2.47,39.03-33.77,41.51-53.5,1.29-10.22-4-14.92-9.58-21.81C175.18,16.26,121.05,8.61,81.15,16.64,47,23.51,6.06,48.67,9.36,88.36c-1.34.02-2.14-2.98-2.47-4.02C-5.47,44.72,32.31,15.93,65.61,6.1,106.56-5.99,157.19-.61,190.95,26.79Z"/>
-                        <path fill="#2d6b36" d="M104.37,20.36c5.28-.97,10.73-1.01,16,0,22.59,1.27,51.26,10.03,69.27,23.97.69.54,4.39,4.77,3.24,6.03-4.52-3.4-9.48-6.45-14.5-8.99-2.97.02-5.91-.81-8-3-.69-.25-1.36-.81-2-1-2.37.09-4.7-.58-7-2-10.15-2.45-20.68-3.92-31-5-11.64-.76-23.33-1.18-35-1-3.86.25-9.44,1.52-14,2l-10,2c-5.28.83-10.51,2.19-15.55,3.95-7.97,2.78-15.34,7.63-23.45,10.04,3.41-5.14,9.43-6.27,13.25-10.6,18.52-9.44,37.39-15.41,58.74-16.39Z"/>
-                        <path fill="#26416f" d="M45.37,57.36c15.03,1.54,17.65,15.68,15.91,28.41-.33,2.44-3.35,8.85-4.91,10.59.7,1.6-.63,2.6-4,3-1.28.8-5,.44-4.85,3.3,4.34,9.74,7.46,19.94,11.17,29.92.59,1.58.08,3.3,2.67,2.78v1c-4.39.23-13.22,2.91-15.65-2.24-.28-.6.23-2.02-.26-3.23-3.02-7.45-5.33-15.02-8.09-22.52-1.71-.64-2.84-3.87-2.52-5.44.05-.25,1.27,4.7-.48,4.44-.6,4.38-2.72,27.69-4,29-3.55.93-7.43.84-11,0l8-79c5.97-.66,12.06-1.12,18,0ZM36.37,88.37c6,.03,12.23-.49,13.05-7.54.13-1.12-.22-6.28-1.01-6.94-1.47-1.24-9.71-3.06-10.58-1.57-.67,1.14-2.04,15.49-1.46,16.06Z"/>
-                        <path fill="#2d6b36" d="M87.37,57.36c3.28,15.93,5.63,32.09,9,48,1,.59,2,.61,3,0,1.47-4.25,3.36-8.76,5-13,.83-3.85,2.16-7.52,4-11,1.74-3.22,8.64-23.58,10-24,3.15-1.1,6.82-1.04,10,0,.58,1.83-.06,8.31,0,11v40c.12,9.38.91,18.63,1,28-4.34,1.71-8.01,1.71-11,0-.32-.65-.85-1.13-1-2,.35-8.41.68-17.07,1-26-.8-4.83-.78-10.11,0-15-1.72.36-2.6,2.48-2.63,6.38l-4.37,7.62c-.37,1-.64,2.03-1,3,.53,2.91-.14,4.58-2,5-1.35,3.65-2.63,7.36-4,11,.13,2.08-.54,4.08-2,6-3.22,4.28-4.58,7.11-11,4-2.24-2.22-2.78-4.99-2-8-2.36-11.19-3.92-22.73-6-34-1.37.06-2.37,1.39-3,4-.56,3.28-1.34,6.69-2,10,.28,3.43-.39,6.09-2,8-.98,4.54-2.3,16.86-4,20-3.09,1.55-6.87,1.36-10,0-.33.02-.67-.02-1,0-.87-.28-.86-.62,0-1l15-78c3.48-1.01,7.6-1.21,11,0Z"/>
-                        <text fill="#26416f" fontFamily="TimesNewRomanPSMT, 'Times New Roman'" fontSize="14" transform="translate(0 162)">
-                          <tspan x="0" y="0">Rwanda Muslim Community</tspan>
-                        </text>
-                      </svg>
+                      <img 
+                        src="/src/assets/logo.png" 
+                        alt="Rwanda Muslim Community" 
+                        className="w-24 h-auto"
+                      />
                     </div>
 
                     {/* Center - Title */}
@@ -1651,6 +1971,236 @@ export default function GenerateCertificatePage() {
                 <div className="absolute top-1 right-1 w-6 h-6 border-r-2 border-t-2 border-amber-400" />
                 <div className="absolute bottom-1 left-1 w-6 h-6 border-l-2 border-b-2 border-amber-400" />
                 <div className="absolute bottom-1 right-1 w-6 h-6 border-r-2 border-b-2 border-amber-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Shahada Certificate Preview */}
+      {certificateType === 'shahada' && selectedShahadaApp && certificateData.certificateNumber && (
+        <Card id="certificate-preview" className="print:shadow-none overflow-hidden">
+          <CardContent className="p-0">
+            <div 
+              id="certificate-print-area" 
+              className="relative" 
+              style={{ 
+                width: '1123px', 
+                height: '794px',
+                margin: '0 auto',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Certificate Container - Green theme for Shahada */}
+              <div className="w-full h-full border-8 border-double border-green-700 p-3 bg-gradient-to-br from-green-50 via-white to-green-50 relative overflow-hidden">
+                
+                {/* Anti-Copy Pattern */}
+                <AntiCopyPattern />
+                
+                {/* Security Fibers */}
+                <SecurityFibers />
+                
+                {/* Watermark */}
+                <WatermarkText text={`${selectedShahadaApp.first_name} ${selectedShahadaApp.last_name}`} />
+                
+                {/* Security Thread - Green for Shahada */}
+                <div className="absolute left-8 top-0 bottom-0 w-2 bg-gradient-to-b from-transparent via-green-500/60 to-transparent">
+                  <div className="h-full w-full bg-[repeating-linear-gradient(180deg,transparent,transparent_10px,#22c55e_10px,#22c55e_12px)] opacity-50" />
+                </div>
+                
+                {/* Guilloche Pattern */}
+                <GuillocheBackground />
+                
+                {/* Corner Decorations */}
+                <div className="absolute top-1 left-1 w-6 h-6 border-l-2 border-t-2 border-green-600" />
+                <div className="absolute top-1 right-1 w-6 h-6 border-r-2 border-t-2 border-green-600" />
+                <div className="absolute bottom-1 left-1 w-6 h-6 border-l-2 border-b-2 border-green-600" />
+                <div className="absolute bottom-1 right-1 w-6 h-6 border-r-2 border-b-2 border-green-600" />
+                
+                {/* Main Content */}
+                <div className="relative h-full flex flex-col justify-between">
+                  
+                  {/* Top Header */}
+                  <div className="flex items-center justify-between mb-1">
+                    {/* Left - Logo */}
+                    <div className="w-28 flex-shrink-0">
+                      <img 
+                        src="/src/assets/logo.png" 
+                        alt="Rwanda Muslim Community" 
+                        className="w-24 h-auto"
+                      />
+                    </div>
+
+                    {/* Center - Title */}
+                    <div className="text-center flex-1 px-1">
+                      <h1 className="text-xl font-bold text-green-800 tracking-wide">REPUBLIC OF RWANDA</h1>
+                      <h2 className="text-lg font-bold">
+                        <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 bg-clip-text text-transparent">RWANDA ISLAMIC COMMUNITY</span>
+                      </h2>
+                      <p className="text-xs text-green-700 uppercase tracking-widest font-semibold">Official Shahada Certificate</p>
+                      <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-green-500 to-transparent mx-auto mt-1" />
+                    </div>
+
+                    {/* Right - QR Code */}
+                    <div className="w-24 flex-shrink-0 flex flex-col items-center">
+                      <div className="p-1.5 bg-white rounded-lg shadow-md border border-green-200">
+                        <RealQRCodeSVG value={verificationUrl} size={90} />
+                      </div>
+                      <p className="text-[8px] text-gray-500 text-center mt-1">Scan to verify</p>
+                    </div>
+                  </div>
+
+                  {/* Arabic Header */}
+                  <div className="text-center my-1">
+                    <p className="text-lg font-bold text-green-800">شهادة الشهادة</p>
+                    <p className="text-sm text-green-600">Islamic Declaration of Faith Certificate</p>
+                  </div>
+
+                  {/* Certificate Number Banner */}
+                  <div className="text-center my-1">
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-100 via-emerald-100 to-green-100 border border-green-400 px-4 py-1 rounded-full">
+                      <span className="text-green-800 font-semibold text-xs">CERTIFICATE NO:</span>
+                      <span className="bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 bg-clip-text text-transparent font-bold">{certificateData.certificateNumber}</span>
+                    </div>
+                  </div>
+
+                  {/* Certification Text */}
+                  <div className="text-center my-1 px-8">
+                    <p className="text-sm text-gray-700 italic">This is to certify that</p>
+                    <p className="text-xl font-bold text-green-800 my-2">{selectedShahadaApp.first_name} {selectedShahadaApp.last_name}</p>
+                    <p className="text-sm text-gray-700 italic">has sincerely declared the Islamic Shahada (Declaration of Faith)</p>
+                    {selectedShahadaApp.current_religion && (
+                      <p className="text-xs text-gray-500 mt-1">Previously: {selectedShahadaApp.current_religion}</p>
+                    )}
+                  </div>
+
+                  {/* Shahada Declaration */}
+                  <div className="mx-16 my-2 p-4 border-2 border-green-200 rounded-lg bg-green-50/50">
+                    <p className="text-center text-lg font-bold text-green-800 mb-2">
+                      أشهد أن لا إله إلا الله وأشهد أن محمداً رسول الله
+                    </p>
+                    <p className="text-center text-sm text-gray-600 italic">
+                      "I bear witness that there is no deity worthy of worship except Allah, 
+                      and I bear witness that Muhammad is His servant and Messenger."
+                    </p>
+                  </div>
+
+                  {/* Convert Photo and Details */}
+                  <div className="flex items-center justify-center gap-4 my-1">
+                    <div className="w-32 h-32 border-2 border-green-300 rounded-lg overflow-hidden bg-gray-100 shadow-md flex items-center justify-center">
+                      <UserCircle className="w-16 h-16 text-green-600" />
+                    </div>
+                    <div className="text-left space-y-1">
+                      <p className="text-sm"><span className="font-semibold text-gray-600">ID Number:</span> {selectedShahadaApp.national_id || '_________________'}</p>
+                      <p className="text-sm"><span className="font-semibold text-gray-600">Date of Birth:</span> {selectedShahadaApp.date_of_birth || '_________________'}</p>
+                      <p className="text-sm"><span className="font-semibold text-gray-600">Declaration Date:</span> {certificateData.declarationDate || selectedShahadaApp.preferred_date || '_________________'}</p>
+                      <p className="text-sm"><span className="font-semibold text-gray-600">Location:</span> {certificateData.declarationLocation || selectedShahadaApp.address || '_________________'}</p>
+                    </div>
+                  </div>
+
+                  {/* Date/Place and Official Stamp */}
+                  <div className="flex items-center justify-between my-1 gap-1">
+                    {/* Date and Place */}
+                    <div className="flex-1 grid grid-cols-2 gap-2 text-center bg-green-50/50 p-1.5 rounded-lg border border-green-200 max-w-md">
+                      <div>
+                        <span className="text-gray-500 text-[10px] font-medium">Declaration Date:</span>
+                        <p className="font-semibold text-sm text-gray-800">{certificateData.declarationDate || selectedShahadaApp.preferred_date || '_________________'}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 text-[10px] font-medium">Location:</span>
+                        <p className="font-semibold text-sm text-gray-800">{certificateData.declarationLocation || selectedShahadaApp.address || '_________________'}</p>
+                      </div>
+                    </div>
+                    {/* Official Stamp */}
+                    <div className="flex-shrink-0 ml-1">
+                      <div className="relative">
+                        <div className="w-24 h-24">
+                          <svg viewBox="0 0 100 100" className="w-full h-full">
+                            <circle cx="50" cy="50" r="48" fill="none" stroke="#16a34a" strokeWidth="2" />
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="#16a34a" strokeWidth="1" />
+                            <defs>
+                              <path id="shahadaCirclePath" d="M 50,50 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" />
+                            </defs>
+                            <text fill="#16a34a" fontSize="8" fontWeight="bold">
+                              <textPath href="#shahadaCirclePath" startOffset="0%">
+                                RWANDA ISLAMIC COMMUNITY
+                              </textPath>
+                            </text>
+                            <text x="50" y="45" textAnchor="middle" fill="#16a34a" fontSize="10" fontWeight="bold">
+                              OFFICIAL
+                            </text>
+                            <text x="50" y="58" textAnchor="middle" fill="#16a34a" fontSize="8">
+                              SHAHADA
+                            </text>
+                            <text x="50" y="68" textAnchor="middle" fill="#16a34a" fontSize="8">
+                              CERTIFIED
+                            </text>
+                            <polygon points="50,25 53,32 60,32 55,37 57,44 50,40 43,44 45,37 40,32 47,32" fill="#16a34a" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Signatures */}
+                  <div className="border-t border-green-300 pt-2 mt-1">
+                    <p className="text-center text-xs font-bold text-green-700 mb-2 uppercase tracking-widest">Witnessed By</p>
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <div className="border-b border-gray-400 pb-1 mb-1">
+                          <p className="text-sm font-serif italic text-gray-700">{certificateData.witness1Name}</p>
+                        </div>
+                        <p className="text-[10px] text-gray-600 uppercase">Witness 1</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="border-b border-gray-400 pb-1 mb-1">
+                          <p className="text-sm font-serif italic text-gray-700">{certificateData.witness2Name}</p>
+                        </div>
+                        <p className="text-[10px] text-gray-600 uppercase">Witness 2</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="border-b border-gray-400 pb-1 mb-1 relative">
+                          <p className="text-sm font-serif italic text-gray-700">{certificateData.registrarName}</p>
+                          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-[6px]">✓</span>
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-600 uppercase">{certificateData.registrarTitle}</p>
+                        <p className="text-[8px] text-red-600">Official Seal</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="border-b border-gray-400 pb-1 mb-1 relative">
+                          <p className="text-sm font-serif italic text-gray-700">{certificateData.muftiName || 'Sheikh Salim Hitimana'}</p>
+                          <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-[6px]">★</span>
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-600 uppercase">Grand Mufti of Rwanda</p>
+                        <p className="text-[8px] text-green-600">Chief Islamic Authority</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="mt-1 pt-1 border-t border-green-300 text-center">
+                    <p className="text-[9px] text-gray-600 italic max-w-2xl mx-auto leading-tight">
+                      This Shahada certificate confirms the bearer's sincere declaration of faith in Islam. 
+                      Any alteration or forgery of this document is a criminal offense.
+                    </p>
+                    <div className="flex justify-center items-center gap-2 mt-1 text-[8px] text-gray-400">
+                      <span>Date of Issue: {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      <span>|</span>
+                      <span>Verify: {window.location.origin}/verify-certificate/{certificateData.certificateNumber}</span>
+                    </div>
+                  </div>
+
+                  {/* Security Footer */}
+                  <div className="mt-1 flex justify-between items-center text-[8px] text-gray-400 border-t border-dashed border-gray-300 pt-1">
+                    <span>🔒 Secure Document | Official Use Only</span>
+                    <span className="font-mono">ID: {selectedShahadaApp.id.slice(0, 8)}... | AUTH: RIC-{Math.floor(1000 + Math.random() * 9000)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>

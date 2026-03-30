@@ -54,6 +54,7 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
     additionalInfo: "",
     
     // Documents
+    passportPhoto: null as File | null,
     documents: [] as File[],
     
     // Agreement
@@ -61,8 +62,32 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
     understanding: false
   });
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | File | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePassportPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type and size
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid File',
+          description: 'Please upload an image file (JPG, PNG)',
+          variant: 'destructive'
+        });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File Too Large',
+          description: 'Passport photo must be less than 5MB',
+          variant: 'destructive'
+        });
+        return;
+      }
+      handleInputChange('passportPhoto', file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,38 +132,76 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
 
       console.log('Submitting Shahada application with data:', {
         user_id: user.id,
-        full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         date_of_birth: formData.dateOfBirth,
-        previous_religion: formData.currentReligion.trim(),
+        current_religion: formData.currentReligion.trim(),
         address: formData.address.trim(),
-        declaration_text: formData.conversionReason.trim(),
-        special_requests: formData.islamicKnowledge.trim(),
+        city: formData.city.trim(),
+        district: formData.district.trim(),
+        conversion_reason: formData.conversionReason.trim(),
+        islamic_knowledge: formData.islamicKnowledge.trim(),
       });
 
       const insertData: any = {
         user_id: user.id,
-        full_name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
         national_id: null, 
         date_of_birth: formData.dateOfBirth,
         phone: formData.phone.trim(),
         email: formData.email.trim(),
         address: formData.address.trim(),
-        previous_religion: formData.currentReligion.trim(),
+        city: formData.city.trim(),
+        district: formData.district.trim(),
+        current_religion: formData.currentReligion.trim(),
         witness1_name: formData.witness1Name.trim() || null,
         witness1_phone: formData.witness1Phone.trim() || null,
-        witness1_id: null, 
+        witness1_relationship: formData.witness1Relationship.trim() || null,
         witness2_name: formData.witness2Name.trim() || null,
         witness2_phone: formData.witness2Phone.trim() || null,
-        witness2_id: null, 
-        declaration_text: formData.conversionReason.trim(), 
+        witness2_relationship: formData.witness2Relationship.trim() || null,
+        conversion_reason: formData.conversionReason.trim(), 
         preferred_date: null, 
-        special_requests: formData.islamicKnowledge.trim(), 
+        islamic_knowledge: formData.islamicKnowledge.trim(), 
       };
 
       if (formData.additionalInfo.trim()) {
         insertData.additional_info = formData.additionalInfo.trim();
+      }
+
+      // Upload passport photo if provided
+      let passportPhotoUrl = null;
+      if (formData.passportPhoto) {
+        const fileExt = formData.passportPhoto.name.split('.').pop();
+        const fileName = `shahada-${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `shahada-photos/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(filePath, formData.passportPhoto, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (uploadError) {
+          console.error('Photo upload error:', uploadError);
+          toast({
+            title: 'Upload Error',
+            description: 'Failed to upload passport photo. Please try again.',
+            variant: 'destructive'
+          });
+          return;
+        }
+        
+        const { data: urlData } = supabase.storage
+          .from('documents')
+          .getPublicUrl(filePath);
+        
+        passportPhotoUrl = urlData.publicUrl;
+        insertData.passport_photo_url = passportPhotoUrl;
       }
 
       const { data, error } = await supabase
@@ -288,6 +351,57 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
                   required
                   className="h-11 sm:h-10"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Passport Photo Upload */}
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+              <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+              Passport Photo *
+            </h3>
+            <div className="space-y-3">
+              <div className="border-2 border-dashed border-emerald-200 rounded-lg p-4 sm:p-6 bg-emerald-50/30">
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  {formData.passportPhoto ? (
+                    <div className="relative">
+                      <img
+                        src={URL.createObjectURL(formData.passportPhoto)}
+                        alt="Passport preview"
+                        className="w-32 h-32 object-cover rounded-lg border-2 border-emerald-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange('passportPhoto', null)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-10 h-10 text-emerald-400" />
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">Upload your passport photo</p>
+                        <p className="text-xs text-gray-400">JPG, PNG (Max 5MB)</p>
+                      </div>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePassportPhotoChange}
+                    className="hidden"
+                    id="passportPhoto"
+                    required={!formData.passportPhoto}
+                  />
+                  <label htmlFor="passportPhoto">
+                    <Button type="button" variant="outline" size="sm" className="cursor-pointer" asChild>
+                      <span>{formData.passportPhoto ? 'Change Photo' : 'Select Photo'}</span>
+                    </Button>
+                  </label>
+                </div>
               </div>
             </div>
           </div>

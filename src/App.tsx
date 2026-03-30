@@ -14,6 +14,8 @@ import FAQs from "./pages/FAQs";
 import HajjUmrahApplication from "./pages/HajjUmrahApplication";
 import Leadership from "./pages/Leadership";
 import NikahApplication from "./pages/NikahApplication";
+import TalaqApplication from "./pages/TalaqApplication";
+import MarriageCounselingApplication from "./pages/MarriageCounselingApplication";
 import OurMission from "./pages/OurMission";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SearchResults from "./pages/SearchResults";
@@ -49,7 +51,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -60,6 +62,8 @@ const App = () => (
             <Route path="/hajj-umrah-application" element={<HajjUmrahApplication />} />
             <Route path="/leadership" element={<Leadership />} />
             <Route path="/nikah-application" element={<NikahApplication />} />
+            <Route path="/talaq-application" element={<TalaqApplication />} />
+            <Route path="/marriage-counseling-application" element={<MarriageCounselingApplication />} />
             <Route path="/our-mission" element={<OurMission />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/search" element={<SearchResults />} />

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Heart, Home, Building2, ArrowRight, Clock, DollarSign, Users, Star, ClipboardList } from "lucide-react";
+import { ScrollText, HeartHandshake, BadgeCheck, Store, ArrowRight, Clock, DollarSign, Users, Star, ClipboardList, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const popularServices = [
   {
-    icon: FileText,
+    icon: ScrollText,
     title: "Shahada Certificate",
     description: "Apply for conversion certificate",
     fullDescription: "Official services for those converting to Islam including Shahada declaration ceremony, conversion certificate issuance, and integration into the Muslim community. We provide educational materials for new Muslims, assign mentors, and help with name change documentation if desired. All conversions are registered with the Supreme Council of Islamic Affairs in Rwanda.",
@@ -21,7 +21,7 @@ const popularServices = [
     bgColor: "bg-emerald-50",
   },
   {
-    icon: Heart,
+    icon: HeartHandshake,
     title: "Marriage Application",
     description: "Submit Nikah application",
     fullDescription: "Complete Islamic marriage (Nikah) application services including ceremony officiation by certified Imams, marriage contract preparation, legal registration with Rwandan authorities, and official marriage certificate issuance. We provide pre-marital Islamic counseling and witness arrangement services.",
@@ -34,7 +34,7 @@ const popularServices = [
     bgColor: "bg-pink-50",
   },
   {
-    icon: Home,
+    icon: BadgeCheck,
     title: "Certificate of Residence",
     description: "Get residence certificate",
     fullDescription: "Obtain official proof of residence for various administrative purposes including visa applications, school enrollment, business registration, and legal documentation. Our residence verification process includes address confirmation through local authorities and mosque verification.",
@@ -47,7 +47,7 @@ const popularServices = [
     bgColor: "bg-blue-50",
   },
   {
-    icon: Building2,
+    icon: Store,
     title: "Business Registration",
     description: "Register new business",
     fullDescription: "Complete business registration services for Muslim entrepreneurs and companies seeking Halal certification. We handle business name registration, commercial permits, tax identification, and Halal compliance certification. Our team guides you through all regulatory requirements.",
