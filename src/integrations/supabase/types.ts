@@ -1309,6 +1309,7 @@ export type Database = {
           full_name: string
           id: string
           national_id: string | null
+          passport_photo_url: string | null
           phone: string | null
           preferred_date: string | null
           previous_religion: string | null

@@ -138,6 +138,7 @@ export interface ShahadaCertificateRequest {
   witnessTitle: string;
   certificateId: string;
   issueDate: string;
+  passportPhotoUrl?: string;
   language?: SupportedLanguage;
 }
 
@@ -195,12 +196,35 @@ const generateCertificatePDF = async (data: ShahadaCertificateRequest): Promise<
   doc.line(margin, 272, pageWidth - margin, 272);
 
   // HEADER SECTION
-  doc.setFillColor(colors.primary);
-  doc.circle(35, 45, 12, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('☪', 35, 50, { align: 'center' });
+  // Add logo image
+  try {
+    const logoUrl = "https://olpvftgnmycofavltxoa.supabase.co/storage/v1/object/public/logo/logo.png";
+    const logoResponse = await fetch(logoUrl);
+    
+    if (logoResponse.ok) {
+      const logoArrayBuffer = await logoResponse.arrayBuffer();
+      const logoImage = await doc.addImage(logoArrayBuffer, 'PNG', 25, 35, 20, 20);
+      console.log('Logo added successfully');
+    } else {
+      console.log('Logo not found, using fallback');
+      // Fallback: Islamic symbol circle
+      doc.setFillColor(colors.primary);
+      doc.circle(35, 45, 12, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('☪', 35, 50, { align: 'center' });
+    }
+  } catch (error) {
+    console.log('Error adding logo, using fallback:', error);
+    // Fallback: Islamic symbol circle
+    doc.setFillColor(colors.primary);
+    doc.circle(35, 45, 12, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('☪', 35, 50, { align: 'center' });
+  }
 
   doc.setTextColor(colors.primary);
   doc.setFontSize(22);
@@ -249,28 +273,75 @@ const generateCertificatePDF = async (data: ShahadaCertificateRequest): Promise<
   const valueX = margin + 45;
   let currentY = startY + 22;
   
-  const drawField = (label: string, value: string, y: number) => {
+  // Add passport photo if available
+  console.log('📸 Photo check - passportPhotoUrl:', data.passportPhotoUrl ? 'PRESENT' : 'MISSING');
+  
+  if (data.passportPhotoUrl) {
+    try {
+      console.log('📸 Fetching passport photo from:', data.passportPhotoUrl);
+      const photoResponse = await fetch(data.passportPhotoUrl);
+      
+      console.log('📸 Photo fetch response:', {
+        status: photoResponse.status,
+        ok: photoResponse.ok,
+        contentType: photoResponse.headers.get('content-type')
+      });
+      
+      if (photoResponse.ok) {
+        const photoArrayBuffer = await photoResponse.arrayBuffer();
+        console.log('📸 Photo downloaded, size:', photoArrayBuffer.byteLength, 'bytes');
+        
+        // Add photo to the right side of personal info
+        const photoX = pageWidth - margin - 35;
+        const photoY = startY + 15;
+        const photoSize = 30;
+        
+        // Add photo border
+        doc.setDrawColor(colors.border);
+        doc.setLineWidth(0.5);
+        doc.rect(photoX - 2, photoY - 2, photoSize + 4, photoSize + 4);
+        
+        // Add photo
+        await doc.addImage(photoArrayBuffer, 'JPEG', photoX, photoY, photoSize, photoSize);
+        console.log('✅ Passport photo added successfully to PDF');
+        
+        // Adjust text width to accommodate photo
+        currentY = startY + 22;
+      } else {
+        console.log('❌ Failed to fetch passport photo:', photoResponse.status, photoResponse.statusText);
+      }
+    } catch (error) {
+      console.log('❌ Error adding passport photo:', error instanceof Error ? error.message : error);
+    }
+  } else {
+    console.log('⚠️ No passportPhotoUrl provided in data');
+  }
+  
+  const drawField = (label: string, value: string, y: number, maxWidth?: number) => {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(colors.gray);
-    doc.text(label, labelX, y);
+    doc.text(label, labelX, y, { maxWidth: maxWidth || 100 });
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(colors.dark);
-    doc.text(value || '__________________', valueX, y);
+    doc.text(value || '__________________', valueX, y, { maxWidth: maxWidth || 120 });
   };
 
-  drawField(t.fullName, data.fullName, currentY);
+  // Adjust field positions if photo is present
+  const fieldMaxWidth = data.passportPhotoUrl ? 80 : 120;
+  
+  drawField(t.fullName, data.fullName, currentY, fieldMaxWidth);
   currentY += 12;
   
   if (data.formerName) {
-    drawField(t.formerName, data.formerName, currentY);
+    drawField(t.formerName, data.formerName, currentY, fieldMaxWidth);
     currentY += 12;
   }
   
-  drawField(t.dateOfBirth, data.dateOfBirth, currentY);
+  drawField(t.dateOfBirth, data.dateOfBirth, currentY, fieldMaxWidth);
   currentY += 12;
-  drawField(t.nationality, data.nationality, currentY);
+  drawField(t.nationality, data.nationality, currentY, fieldMaxWidth);
   currentY += 12;
-  drawField(t.idNumber, data.idNumber, currentY);
+  drawField(t.idNumber, data.idNumber, currentY, fieldMaxWidth);
 
   // SHAHADA DECLARATION
   const declarationY = startY + 85;
@@ -435,7 +506,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { applicationId, fullName, formerName, dateOfBirth, nationality, idNumber, shahadaDate, location, witnessName, witnessTitle, certificateId, issueDate, language = 'en' } = await req.json();
+    const { applicationId, fullName, formerName, dateOfBirth, nationality, idNumber, shahadaDate, location, witnessName, witnessTitle, certificateId, issueDate, passportPhotoUrl, language = 'en' } = await req.json();
 
     if (!fullName || !shahadaDate || !witnessName) {
       return new Response(JSON.stringify({ 
@@ -459,6 +530,7 @@ Deno.serve(async (req: Request) => {
       witnessTitle,
       certificateId,
       issueDate,
+      passportPhotoUrl,
       language
     });
 

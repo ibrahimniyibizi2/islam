@@ -6,11 +6,13 @@ import { toast } from '../ui/use-toast';
 // Types
 interface ShahadaApplication {
   id: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
   former_name?: string;
   date_of_birth: string;
   nationality: string;
   id_number: string;
+  passport_photo_url?: string;
   shahada_date: string;
   location: string;
   witness_name: string;
@@ -38,11 +40,47 @@ export const ShahadaCertificateDashboard = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('shahada_applications')
-        .select('*')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          national_id,
+          date_of_birth,
+          current_religion,
+          address,
+          city,
+          district,
+          status,
+          created_at,
+          updated_at,
+          certificate_number,
+          certificate_issued_at,
+          witness1_name,
+          witness2_name,
+          witness1_phone,
+          witness2_phone,
+          conversion_reason,
+          islamic_knowledge,
+          passport_photo_url
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      // Map database columns to interface
+      const mappedData = (data || []).map((item: any) => ({
+        ...item,
+        // Use first_name and last_name from database
+        id_number: item.national_id,
+        shahada_date: item.preferred_date || item.created_at,
+        location: `${item.city || ''}, ${item.district || ''}`,
+        witness_name: item.witness1_name,
+        witness_title: 'Witness',
+        certificate_id: item.certificate_number || `SHA-${item.id.slice(0, 8).toUpperCase()}`,
+        issue_date: item.certificate_issued_at || item.updated_at || item.created_at,
+      })) as ShahadaApplication[];
+      setApplications(mappedData);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
@@ -63,7 +101,7 @@ export const ShahadaCertificateDashboard = () => {
       const { data, error } = await supabase.functions.invoke('generate-multilingual-shahada-certificate', {
         body: {
           applicationId: application.id,
-          fullName: application.full_name,
+          fullName: `${application.first_name} ${application.last_name}`,
           formerName: application.former_name,
           dateOfBirth: application.date_of_birth,
           nationality: application.nationality,
@@ -74,6 +112,7 @@ export const ShahadaCertificateDashboard = () => {
           witnessTitle: application.witness_title,
           certificateId: application.certificate_id,
           issueDate: application.issue_date,
+          passportPhotoUrl: application.passport_photo_url,
           language
         }
       });
@@ -84,8 +123,9 @@ export const ShahadaCertificateDashboard = () => {
       const blob = new Blob([data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
+      const fullName = `${application.first_name} ${application.last_name}`.toLowerCase().replace(/\s+/g, '-');
       a.href = url;
-      a.download = `shahada-certificate-${language}-${application.full_name.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+      a.download = `shahada-certificate-${language}-${fullName}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -162,7 +202,7 @@ export const ShahadaCertificateDashboard = () => {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{application.full_name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{application.first_name} {application.last_name}</h3>
                     <p className="text-sm text-gray-600">Certificate ID: {application.certificate_id}</p>
                     <p className="text-sm text-gray-600">Applied: {new Date(application.created_at).toLocaleDateString()}</p>
                   </div>
@@ -247,7 +287,7 @@ export const ShahadaCertificateDashboard = () => {
             <div className="p-6">
               <MultilingualShahadaCertificateDownload
                 certificateData={{
-                  fullName: selectedApplication.full_name,
+                  fullName: `${selectedApplication.first_name} ${selectedApplication.last_name}`,
                   formerName: selectedApplication.former_name,
                   dateOfBirth: selectedApplication.date_of_birth,
                   nationality: selectedApplication.nationality,

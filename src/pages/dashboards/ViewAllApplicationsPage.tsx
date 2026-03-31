@@ -366,20 +366,24 @@ export function ViewAllApplicationsPage() {
       }
 
       const attemptUpdate = async (payload: any) => {
-        return await supabase.from(tableName).update(payload).eq('id', applicationId);
+        console.log(`Attempting update on ${tableName}:`, payload);
+        const result = await supabase.from(tableName).update(payload).eq('id', applicationId).select();
+        console.log('Update result:', result);
+        return result;
       };
 
-      let { error } = await attemptUpdate(updateData);
+      let { data: updatedData, error } = await attemptUpdate(updateData);
 
       // If the table doesn't have updated_at yet, retry without it
       if (error?.code === 'PGRST204' && typeof error.message === 'string' && error.message.includes("updated_at")) {
+        console.log('Retrying without updated_at...');
         const { updated_at: _updatedAt, ...payloadWithoutUpdatedAt } = updateData;
-        ({ error } = await attemptUpdate(payloadWithoutUpdatedAt));
+        ({ data: updatedData, error } = await attemptUpdate(payloadWithoutUpdatedAt));
       }
 
       if (error) {
         // Log detailed error for debugging
-        console.error('Shahada status update error details:', {
+        console.error('Status update error details:', {
           code: error.code,
           message: error.message,
           details: error.details,
@@ -420,19 +424,33 @@ export function ViewAllApplicationsPage() {
         throw error;
       }
 
-      // Audit logging (optional - skip if table doesn't exist)
+      // Verify update actually persisted
+      if (!updatedData || updatedData.length === 0) {
+        console.error('Update returned no data - possible RLS issue or row not found');
+        throw new Error('Update failed: No data returned. Possible causes: RLS policy blocking update, or row not found.');
+      }
+      
+      const returnedStatus = updatedData[0]?.status;
+      if (returnedStatus !== newStatus) {
+        console.error(`Status mismatch! Expected: ${newStatus}, Got: ${returnedStatus}`);
+        throw new Error(`Update verification failed: expected status '${newStatus}' but got '${returnedStatus}'`);
+      }
+      
+      console.log('Update verified successfully:', updatedData[0]);
+
+      // Audit logging (optional - skip if table doesn't exist or schema mismatch)
       try {
-        await supabase.from('audit_logs' as any).insert({
-          action: 'application_status_updated',
-          table_name: tableName,
-          record_id: applicationId,
-          old_values: { status: application.status },
-          new_values: updateData,
-          reason: reason || null
+        // Try minimal insert with only action field
+        const { error: auditError } = await supabase.from('audit_logs').insert({
+          action: `status_update:${tableName}:${applicationId}:${application.status}->${newStatus}`
         });
+        if (auditError) {
+          console.log('Audit logging skipped (table/column issue):', auditError.message);
+        } else {
+          console.log('Audit log created successfully');
+        }
       } catch (auditError) {
-        console.log('Audit logging failed, but status update succeeded:', auditError);
-        // Don't fail the whole operation if audit logging fails
+        console.log('Audit logging failed (non-blocking):', auditError);
       }
 
       // Update local state
@@ -522,13 +540,17 @@ export function ViewAllApplicationsPage() {
             }
           } else {
             // For other application types (shahada, residence, business)
+          // Use reference_number from details if available, otherwise generate a short ref
+          const refNumber = application.details?.referenceNumber || 
+                           application.details?.reference_number || 
+                           `${application.type.toUpperCase()}-${applicationId.slice(0, 8).toUpperCase()}`;
             if (application.applicantPhone) {
               console.log(`Sending SMS to applicant: ${application.applicantPhone}`);
               const { data, error: smsErr } = await supabase.functions.invoke('send-status-sms', {
                 body: {
                   phone: application.applicantPhone,
                   name: application.applicantName,
-                  application_id: applicationId,
+                  application_id: refNumber,
                   status: statusText,
                   type: application.type,
                   reason: reason || undefined,
@@ -544,7 +566,7 @@ export function ViewAllApplicationsPage() {
                 body: {
                   email: application.applicantEmail,
                   name: application.applicantName,
-                  application_id: applicationId,
+                  application_id: refNumber,
                   status: statusText,
                   type: application.type,
                   reason: reason || undefined,

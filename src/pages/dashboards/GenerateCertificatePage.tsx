@@ -42,13 +42,13 @@ interface NikahApplication {
 
 interface ShahadaApplication {
   id: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
   email: string | null;
   phone: string | null;
   national_id: string | null;
   date_of_birth: string | null;
   previous_religion: string | null;
-  preferred_date: string | null;
   address: string | null;
   status: string;
   created_at: string;
@@ -840,6 +840,14 @@ export default function GenerateCertificatePage() {
   const searchApplications = async () => {
     if (!searchQuery.trim()) return;
     
+    // Debug: Check auth state
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('Auth debug:', { 
+      isAuthenticated: !!session, 
+      userId: session?.user?.id,
+      email: session?.user?.email 
+    });
+    
     setLoading(true);
     try {
       if (certificateType === 'nikah') {
@@ -855,18 +863,76 @@ export default function GenerateCertificatePage() {
         setApplications(data || []);
         setShahadaApplications([]);
       } else {
-        // Search Shahada applications - database uses full_name
+        // Search Shahada applications - database uses first_name and last_name
+        console.log('Searching Shahada with query:', searchQuery);
+        
+        // Debug: Try fetching without status filter first
+        const { data: allData, error: allError } = await supabase
+          .from('shahada_applications')
+          .select('id, first_name, last_name, status')
+          .limit(5);
+        console.log('Debug - All applications (no filter):', { allData, allError });
+        
+        // Debug: Try fetching only approved
+        const { data: approvedData, error: approvedError } = await supabase
+          .from('shahada_applications')
+          .select('id, first_name, last_name, status')
+          .eq('status', 'approved')
+          .limit(5);
+        console.log('Debug - Approved only:', { approvedData, approvedError });
+        
+        // Show available names for debugging
+        if (approvedData && approvedData.length > 0) {
+          console.log('Available approved names:', approvedData.map(app => `${app.first_name} ${app.last_name}`));
+        }
+        
+        // Search with proper OR syntax for Supabase
+        const searchPattern = `%${searchQuery}%`;
         const { data, error } = await supabase
           .from('shahada_applications')
           .select('*')
           .in('status', ['approved', 'completed'])
-          .filter('full_name', 'ilike', `%${searchQuery}%`)
+          .or(`first_name.ilike.${searchPattern},last_name.ilike.${searchPattern}`)
           .order('created_at', { ascending: false })
           .limit(10);
 
-        if (error) throw error;
-        setShahadaApplications(data || []);
-        setApplications([]);
+        console.log('Shahada search result:', { data, error, count: data?.length });
+
+        // Fallback: if search returns empty, try fetching all approved and filter in JS
+        if ((!data || data.length === 0) && approvedData && approvedData.length > 0) {
+          console.log('Using JS fallback filtering');
+          const query = searchQuery.toLowerCase();
+          const filtered = approvedData.filter((app: any) => {
+            const fullName = `${app.first_name || ''} ${app.last_name || ''}`.toLowerCase();
+            const firstName = (app.first_name || '').toLowerCase();
+            const lastName = (app.last_name || '').toLowerCase();
+            return fullName.includes(query) || firstName.includes(query) || lastName.includes(query);
+          });
+          console.log('JS filtered results:', filtered);
+          // Fetch full details for filtered results
+          if (filtered.length > 0) {
+            const ids = filtered.map((app: any) => app.id).filter((id: any) => id && typeof id === 'string');
+            if (ids.length === 0) {
+              console.warn('No valid IDs found in filtered results');
+              setShahadaApplications([]);
+            } else {
+              const { data: fullData, error: fullError } = await supabase
+                .from('shahada_applications')
+                .select('*')
+                .in('id', ids);
+              if (fullError) {
+                console.error('Error fetching full details:', fullError);
+                setShahadaApplications([]);
+              } else {
+                setShahadaApplications(fullData || []);
+              }
+            }
+          } else {
+            setShahadaApplications([]);
+          }
+        } else {
+          setShahadaApplications(data || []);
+        }
       }
     } catch (err: any) {
       toast({
@@ -944,6 +1010,15 @@ export default function GenerateCertificatePage() {
     } else {
       // Shahada certificate generation
       if (!selectedShahadaApp) return;
+      if (!selectedShahadaApp.id) {
+        console.error('Selected Shahada application has no ID');
+        toast({
+          title: 'Error',
+          description: 'Invalid application selected. Please search and select again.',
+          variant: 'destructive',
+        });
+        return;
+      }
       if (!certificateData.witness1Name || !certificateData.witness2Name || !certificateData.registrarName) {
         toast({
           title: 'Missing Information',
@@ -962,7 +1037,6 @@ export default function GenerateCertificatePage() {
           .from('shahada_applications')
           .update({
             certificate_number: certNumber,
-            certificate_issued_at: new Date().toISOString(),
             witness1_name: certificateData.witness1Name,
             witness2_name: certificateData.witness2Name,
             status: 'completed',
@@ -1443,7 +1517,7 @@ export default function GenerateCertificatePage() {
                     setSelectedShahadaApp(app);
                     setCertificateData(prev => ({
                       ...prev,
-                      convertName: app.full_name,
+                      convertName: `${app.first_name} ${app.last_name}`,
                       witness1Name: app.witness1_name || '',
                       witness2Name: app.witness2_name || '',
                       previousReligion: app.previous_religion || '',
@@ -1464,7 +1538,7 @@ export default function GenerateCertificatePage() {
                         <UserCircle className="w-5 h-5 text-green-600" />
                       </div>
                       <div>
-                        <p className="font-medium">{app.full_name}</p>
+                        <p className="font-medium">{app.first_name} {app.last_name}</p>
                         <p className="text-sm text-muted-foreground">
                           Date: {app.preferred_date || 'N/A'} | Previous: {app.previous_religion || 'N/A'}
                         </p>
@@ -2070,8 +2144,8 @@ export default function GenerateCertificatePage() {
                     <p className="text-sm text-gray-700 italic">This is to certify that</p>
                     <p className="text-xl font-bold text-green-800 my-2">{selectedShahadaApp.first_name} {selectedShahadaApp.last_name}</p>
                     <p className="text-sm text-gray-700 italic">has sincerely declared the Islamic Shahada (Declaration of Faith)</p>
-                    {selectedShahadaApp.current_religion && (
-                      <p className="text-xs text-gray-500 mt-1">Previously: {selectedShahadaApp.current_religion}</p>
+                    {selectedShahadaApp.previous_religion && (
+                      <p className="text-xs text-gray-500 mt-1">Previously: {selectedShahadaApp.previous_religion}</p>
                     )}
                   </div>
 

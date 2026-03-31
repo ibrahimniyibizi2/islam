@@ -23,6 +23,17 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check network connectivity
+    if (!navigator.onLine) {
+      toast({ 
+        title: 'No Internet Connection', 
+        description: 'Please check your internet connection and try again.', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     // Use phone or email based on detection
@@ -31,7 +42,11 @@ export default function Login() {
     
     setIsLoading(false);
     if (error) {
-      toast({ title: 'Login failed', description: error.message, variant: 'destructive' });
+      // Show user-friendly error message
+      const errorMessage = error.message.includes('Network') || error.message.includes('connection')
+        ? 'Please check your internet connection and try again.'
+        : error.message;
+      toast({ title: 'Login failed', description: errorMessage, variant: 'destructive' });
     } else {
       // Send welcome notification
       if (shouldSendWelcome()) {

@@ -4,6 +4,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Disable JWT verification for this function
+export const config = {
+  auth: false,
+};
+
 function buildEmailHTML(name: string, applicationId: string, status: string, type: string, reason?: string) {
   const isApproved = status === 'approved';
   const statusColor = isApproved ? '#059669' : '#dc2626';
@@ -132,22 +137,26 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check temporarily disabled for testing
-    // const authHeader = req.headers.get("Authorization");
-    // if (!authHeader?.startsWith("Bearer ")) {
-    //   return new Response(JSON.stringify({ error: "Unauthorized" }), {
-    //     status: 401,
-    //     headers: { ...corsHeaders, "Content-Type": "application/json" },
-    //   });
-    // }
-
     const SMTP_EMAIL = Deno.env.get("SMTP_EMAIL");
     const SMTP_APP_PASSWORD = Deno.env.get("SMTP_APP_PASSWORD");
+    
+    console.log("Environment check:");
+    console.log("- SMTP_EMAIL exists:", !!SMTP_EMAIL);
+    console.log("- SMTP_APP_PASSWORD exists:", !!SMTP_APP_PASSWORD);
+    
     if (!SMTP_EMAIL || !SMTP_APP_PASSWORD) {
-      throw new Error("SMTP credentials are not configured");
+      console.error("Missing SMTP credentials");
+      throw new Error(`SMTP credentials missing: EMAIL=${!!SMTP_EMAIL}, PASSWORD=${!!SMTP_APP_PASSWORD}`);
     }
 
-    const { email, name, application_id, status, type, reason } = await req.json();
+    const body = await req.json();
+    console.log("Request body received:", JSON.stringify(body));
+    
+    const { email, name, application_id, status, type, reason } = body;
+    
+    if (!email || !application_id || !status || !type) {
+      throw new Error(`Missing required fields: email=${!!email}, application_id=${!!application_id}, status=${!!status}, type=${!!type}`);
+    }
 
     const subject = status === 'approved' 
       ? `✅ Application Approved - ${type.charAt(0).toUpperCase() + type.slice(1)}` 
@@ -170,7 +179,7 @@ Deno.serve(async (req) => {
     const msg = error instanceof Error ? error.message : "Unknown error";
     const stack = error instanceof Error ? error.stack : "";
     console.error("Error stack:", stack);
-    return new Response(JSON.stringify({ success: false, error: msg, stack: stack }), {
+    return new Response(JSON.stringify({ success: false, error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

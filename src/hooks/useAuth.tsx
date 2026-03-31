@@ -69,13 +69,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchRole]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error: error as Error | null };
+    } catch (err: any) {
+      // Handle network errors
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {
+        return { error: new Error('Network connection failed. Please check your internet connection and try again.') };
+      }
+      return { error: err as Error };
+    }
   };
 
   const signUp = async (email: string, password: string, name: string, phone?: string) => {
     try {
-      console.log('Signing up with:', { email, name, phone });
+      if (!navigator.onLine) {
+        return { error: new Error('Please check your internet connection and try again.') };
+      }
       
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

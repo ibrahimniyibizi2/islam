@@ -30,6 +30,7 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
     dateOfBirth: "",
     gender: "",
     nationality: "",
+    nationalId: "",
     currentReligion: "",
     
     // Address Information
@@ -106,7 +107,7 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
 
     try {
       // Validate required fields
-      const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender', 'nationality', 'currentReligion', 'address', 'city', 'district', 'conversionReason', 'islamicKnowledge'];
+      const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender', 'nationality', 'nationalId', 'currentReligion', 'address', 'city', 'district', 'conversionReason', 'islamicKnowledge'];
       const missingFields = requiredFields.filter(field => {
         const value = formData[field as keyof typeof formData];
         return !value || (typeof value === 'string' && value.trim() === '');
@@ -149,7 +150,7 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
         user_id: user.id,
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
-        national_id: null, 
+        national_id: formData.nationalId.trim() || null, 
         date_of_birth: formData.dateOfBirth,
         phone: formData.phone.trim(),
         email: formData.email.trim(),
@@ -164,7 +165,6 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
         witness2_phone: formData.witness2Phone.trim() || null,
         witness2_relationship: formData.witness2Relationship.trim() || null,
         conversion_reason: formData.conversionReason.trim(), 
-        preferred_date: null, 
         islamic_knowledge: formData.islamicKnowledge.trim(), 
       };
 
@@ -348,6 +348,17 @@ const ShahadaApplicationForm = ({ onSuccess, onCancel }: ShahadaApplicationFormP
                   value={formData.nationality}
                   onChange={(e) => handleInputChange("nationality", e.target.value)}
                   placeholder="e.g., Rwandan"
+                  required
+                  className="h-11 sm:h-10"
+                />
+              </div>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="nationalId" className="text-sm">National ID *</Label>
+                <Input
+                  id="nationalId"
+                  value={formData.nationalId}
+                  onChange={(e) => handleInputChange("nationalId", e.target.value)}
+                  placeholder="e.g., 1199070123456789012"
                   required
                   className="h-11 sm:h-10"
                 />
