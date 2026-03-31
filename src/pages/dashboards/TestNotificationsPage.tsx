@@ -35,7 +35,7 @@ export default function TestNotificationsPage() {
         body: {
           phone: phone,
           name: 'Test User',
-          application_id: 'TEST-123',
+          reference_number: 'TEST-123',
           status: 'approved',
           type: 'nikah',
         },
@@ -85,7 +85,7 @@ export default function TestNotificationsPage() {
         body: {
           email: email,
           name: 'Test User',
-          application_id: 'TEST-123',
+          reference_number: 'TEST-123',
           status: 'approved',
           type: 'nikah',
         },
