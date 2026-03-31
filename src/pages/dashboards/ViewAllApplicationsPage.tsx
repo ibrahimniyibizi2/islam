@@ -485,7 +485,7 @@ export function ViewAllApplicationsPage() {
                 body: {
                   phone: application.details.groomPhone,
                   name: application.details.groomName,
-                  application_id: nikahId,
+                  reference_number: nikahId,
                   status: statusText,
                   type: 'nikah',
                   reason: reason || undefined,
@@ -501,7 +501,7 @@ export function ViewAllApplicationsPage() {
                 body: {
                   email: application.details.groomEmail,
                   name: application.details.groomName,
-                  application_id: nikahId,
+                  reference_number: nikahId,
                   status: statusText,
                   type: 'nikah',
                   reason: reason || undefined,
@@ -515,7 +515,7 @@ export function ViewAllApplicationsPage() {
                 body: {
                   phone: application.details.bridePhone,
                   name: application.details.brideName,
-                  application_id: nikahId,
+                  reference_number: nikahId,
                   status: statusText,
                   type: 'nikah',
                   reason: reason || undefined,
@@ -531,7 +531,7 @@ export function ViewAllApplicationsPage() {
                 body: {
                   email: application.details.brideEmail,
                   name: application.details.brideName,
-                  application_id: nikahId,
+                  reference_number: nikahId,
                   status: statusText,
                   type: 'nikah',
                   reason: reason || undefined,
@@ -550,7 +550,7 @@ export function ViewAllApplicationsPage() {
                 body: {
                   phone: application.applicantPhone,
                   name: application.applicantName,
-                  application_id: refNumber,
+                  reference_number: refNumber,
                   status: statusText,
                   type: application.type,
                   reason: reason || undefined,
@@ -566,7 +566,7 @@ export function ViewAllApplicationsPage() {
                 body: {
                   email: application.applicantEmail,
                   name: application.applicantName,
-                  application_id: refNumber,
+                  reference_number: refNumber,
                   status: statusText,
                   type: application.type,
                   reason: reason || undefined,

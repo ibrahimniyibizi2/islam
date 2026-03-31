@@ -73,20 +73,20 @@ Deno.serve(async (req) => {
       throw new Error("PINDO_API_TOKEN is not configured");
     }
 
-    const { phone, name, application_id, status, type, reason } = await req.json();
+    const { phone, name, reference_number, status, type, reason } = await req.json();
 
     // Build short SMS message
     let message = '';
     
     if (status === 'approved') {
-      // Use approved message template with fallback
-      message = application_id
-        ? `Nikah approved (Certificate number: ${application_id}). Thank you! Wishing you a blessed marriage.`
-        : `Nikah approved. Thank you! Wishing you a blessed marriage.`;
+      // Use approved message template with reference number
+      message = reference_number
+        ? `Nikah approved (Ref: ${reference_number}). Barakallahu!`
+        : `Nikah approved. Barakallahu!`;
     } else {
       message = reason 
-        ? `Your ${type} application ${application_id} is rejected. Reason: ${reason.substring(0, 50)}.`
-        : `Your ${type} application ${application_id} is rejected. Contact support.`;
+        ? `Your ${type} application (Ref: ${reference_number}) is rejected. Reason: ${reason.substring(0, 50)}.`
+        : `Your ${type} application (Ref: ${reference_number}) is rejected. Contact support.`;
     }
 
     await sendSMS(phone, message, PINDO_TOKEN);

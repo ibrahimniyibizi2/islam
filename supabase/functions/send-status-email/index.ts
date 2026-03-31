@@ -9,7 +9,7 @@ export const config = {
   auth: false,
 };
 
-function buildEmailHTML(name: string, applicationId: string, status: string, type: string, reason?: string) {
+function buildEmailHTML(name: string, referenceNumber: string, status: string, type: string, reason?: string) {
   const isApproved = status === 'approved';
   const statusColor = isApproved ? '#059669' : '#dc2626';
   const statusText = isApproved ? 'Approved' : 'Rejected';
@@ -57,8 +57,8 @@ function buildEmailHTML(name: string, applicationId: string, status: string, typ
       
       <div style="margin: 20px 0;">
         <div class="detail-row">
-          <span class="detail-label">Application ID</span>
-          <span class="detail-value">${applicationId}</span>
+          <span class="detail-label">Reference Number</span>
+          <span class="detail-value">${referenceNumber}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Application Type</span>
@@ -152,10 +152,10 @@ Deno.serve(async (req) => {
     const body = await req.json();
     console.log("Request body received:", JSON.stringify(body));
     
-    const { email, name, application_id, status, type, reason } = body;
+    const { email, name, reference_number, status, type, reason } = body;
     
-    if (!email || !application_id || !status || !type) {
-      throw new Error(`Missing required fields: email=${!!email}, application_id=${!!application_id}, status=${!!status}, type=${!!type}`);
+    if (!email || !reference_number || !status || !type) {
+      throw new Error(`Missing required fields: email=${!!email}, reference_number=${!!reference_number}, status=${!!status}, type=${!!type}`);
     }
 
     const subject = status === 'approved' 
@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
     await sendEmailViaGmail(
       email,
       subject,
-      buildEmailHTML(name, application_id, status, type, reason),
+      buildEmailHTML(name, reference_number, status, type, reason),
       SMTP_EMAIL,
       SMTP_APP_PASSWORD
     );
