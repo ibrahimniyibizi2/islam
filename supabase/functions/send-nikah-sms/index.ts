@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
       throw new Error("PINDO_API_TOKEN is not configured");
     }
 
-    const { application_id, groom_name, groom_phone, bride_name, bride_phone, preferred_date } =
+    const { reference_number, groom_name, groom_phone, bride_name, bride_phone, preferred_date } =
       await req.json();
 
     const results: { recipient: string; success: boolean; error?: string }[] = [];
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       try {
         await sendSMS(
           groom_phone,
-          `Nikah application received. ID: ${application_id}. Bride: ${bride_name}. Date: ${preferred_date || "TBC"}.`,
+          `Nikah application received. Ref: ${reference_number}. Bride: ${bride_name}. Date: ${preferred_date || "TBC"}.`,
           PINDO_TOKEN
         );
         results.push({ recipient: "groom", success: true });
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
       try {
         await sendSMS(
           bride_phone,
-          `Nikah application submitted. ID: ${application_id}. Groom: ${groom_name}. Date: ${preferred_date || "TBC"}.`,
+          `Nikah application submitted. Ref: ${reference_number}. Groom: ${groom_name}. Date: ${preferred_date || "TBC"}.`,
           PINDO_TOKEN
         );
         results.push({ recipient: "bride", success: true });

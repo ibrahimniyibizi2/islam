@@ -308,7 +308,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
         try {
           await supabase.functions.invoke('send-nikah-sms', {
             body: {
-              application_id: insertedData?.id,
+              reference_number: insertedData?.reference_number || insertedData?.id,
               groom_name: form.groom_name.trim(),
               groom_phone: form.groom_phone.trim(),
               bride_name: form.bride_name.trim(),
@@ -322,7 +322,7 @@ export default function NikahApplicationForm({ onSuccess, onCancel }: Props) {
         try {
           await supabase.functions.invoke('send-nikah-email', {
             body: {
-              application_id: insertedData?.id,
+              reference_number: insertedData?.reference_number || insertedData?.id,
               groom_name: form.groom_name.trim(),
               groom_email: form.groom_email.trim(),
               bride_name: form.bride_name.trim(),

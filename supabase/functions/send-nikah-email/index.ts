@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function buildEmailHTML(recipientType: string, groomName: string, brideName: string, preferredDate: string, applicationId: string) {
+function buildEmailHTML(recipientType: string, groomName: string, brideName: string, preferredDate: string, referenceNumber: string) {
   const isGroom = recipientType === "groom";
   const partnerLabel = isGroom ? "Bride" : "Groom";
   const partnerName = isGroom ? brideName : groomName;
@@ -41,8 +41,8 @@ function buildEmailHTML(recipientType: string, groomName: string, brideName: str
       <p>Your Nikah application has been ${isGroom ? "received" : "submitted"} successfully. Below are the details:</p>
       <div style="margin: 20px 0;">
         <div class="detail-row">
-          <span class="detail-label">Application ID</span>
-          <span class="detail-value">${applicationId}</span>
+          <span class="detail-label">Reference Number</span>
+          <span class="detail-value">${referenceNumber}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">${partnerLabel}</span>
@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
       throw new Error("SMTP credentials are not configured");
     }
 
-    const { application_id, groom_name, groom_email, bride_name, bride_email, preferred_date } =
+    const { reference_number, groom_name, groom_email, bride_name, bride_email, preferred_date } =
       await req.json();
 
     const results: { recipient: string; success: boolean; error?: string }[] = [];
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
         await sendEmailViaGmailAPI(
           groom_email,
           "Nikah Application Received - Confirmation",
-          buildEmailHTML("groom", groom_name, bride_name, preferred_date, application_id),
+          buildEmailHTML("groom", groom_name, bride_name, preferred_date, reference_number),
           SMTP_EMAIL,
           SMTP_APP_PASSWORD
         );
@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
         await sendEmailViaGmailAPI(
           bride_email,
           "Nikah Application Submitted - Confirmation",
-          buildEmailHTML("bride", groom_name, bride_name, preferred_date, application_id),
+          buildEmailHTML("bride", groom_name, bride_name, preferred_date, reference_number),
           SMTP_EMAIL,
           SMTP_APP_PASSWORD
         );

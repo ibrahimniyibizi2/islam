@@ -133,7 +133,7 @@ export default function TestNotificationsPage() {
       
       const { data, error } = await supabase.functions.invoke('send-nikah-sms', {
         body: {
-          application_id: 'NIKAH-TEST-123',
+          reference_number: 'NIKAH-TEST-123',
           groom_name: 'Test Groom',
           groom_phone: phone,
           bride_name: 'Test Bride',
