@@ -1,10 +1,20 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/DashboardLayout';
-import DashboardStatsCard from '@/components/DashboardStatsCard';
-import { LayoutDashboard, Heart, BookOpen, Calendar, FileText } from 'lucide-react';
+import { LayoutDashboard, Heart, BookOpen, Calendar, FileText, Video } from 'lucide-react';
+import ImamOverview from './imam/ImamOverview';
+import ImamNikah from './imam/ImamNikah';
+import VideoNikahManagement from './imam/VideoNikahManagement';
+import ImamSermons from './imam/ImamSermons';
+import ImamSchedule from './imam/ImamSchedule';
+import ImamCertificates from './imam/ImamCertificates';
+import MeetingLobby from '@/pages/meetings/MeetingLobby';
+import MeetingRoom from '@/pages/meetings/MeetingRoom';
 
 const navItems: NavItem[] = [
   { label: 'Overview', href: '/dashboard/imam', icon: LayoutDashboard },
   { label: 'Nikah Requests', href: '/dashboard/imam/nikah', icon: Heart },
+  { label: 'Video Nikah', href: '/dashboard/imam/video-nikah', icon: Video },
+  { label: 'Meetings', href: '/dashboard/imam/meeting', icon: Video },
   { label: 'Sermons', href: '/dashboard/imam/sermons', icon: BookOpen },
   { label: 'Schedule', href: '/dashboard/imam/schedule', icon: Calendar },
   { label: 'Certificates', href: '/dashboard/imam/certificates', icon: FileText },
@@ -13,15 +23,17 @@ const navItems: NavItem[] = [
 export default function ImamDashboard() {
   return (
     <DashboardLayout title="Imam Dashboard" navItems={navItems}>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <DashboardStatsCard icon={Heart} title="Nikah Pending" value="3" description="This week" />
-        <DashboardStatsCard icon={BookOpen} title="Sermons Given" value="28" description="This month" />
-        <DashboardStatsCard icon={Calendar} title="Upcoming" value="5" description="Events" />
-      </div>
-      <div className="mt-8 rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground">Imam Services</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Manage nikah ceremonies, sermons, and schedules.</p>
-      </div>
+      <Routes>
+        <Route index element={<ImamOverview />} />
+        <Route path="nikah" element={<ImamNikah />} />
+        <Route path="video-nikah" element={<VideoNikahManagement />} />
+        <Route path="meeting" element={<MeetingLobby />} />
+        <Route path="meeting/:roomId" element={<MeetingRoom />} />
+        <Route path="sermons" element={<ImamSermons />} />
+        <Route path="schedule" element={<ImamSchedule />} />
+        <Route path="certificates" element={<ImamCertificates />} />
+        <Route path="*" element={<Navigate to="/dashboard/imam" replace />} />
+      </Routes>
     </DashboardLayout>
   );
 }
