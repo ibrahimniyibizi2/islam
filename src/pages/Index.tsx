@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import KwibukaBanner from "@/components/KwibukaBanner";
 import Hero from "@/components/Hero";
 import QuickAccess from "@/components/QuickAccess";
 import Services from "@/components/Services";
@@ -8,6 +9,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <Header />
+      <KwibukaBanner />
       <main>
         <Hero />
         <QuickAccess />
